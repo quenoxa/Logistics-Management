@@ -17,6 +17,7 @@ import { Delivery, Driver, Vehicle } from '../../shared/types';
 import { StatusBadge } from '../components/common/StatusBadge';
 import { DataTable, Column } from '../components/common/DataTable';
 import { useToast } from '../context/ToastContext';
+import { useAutoRefresh } from '../hooks/useAutoRefresh';
 
 export const Deliveries: React.FC = () => {
   const navigate = useNavigate();
@@ -59,6 +60,8 @@ export const Deliveries: React.FC = () => {
   useEffect(() => {
     fetchData(true);
   }, [statusFilter, priorityFilter, driverFilter, vehicleFilter]);
+
+  useAutoRefresh(fetchData, { intervalMs: 15000 });
 
   const columns: Column<Delivery>[] = [
     {

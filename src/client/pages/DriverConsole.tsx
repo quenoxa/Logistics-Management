@@ -20,6 +20,7 @@ import { StatusBadge } from '../components/common/StatusBadge';
 import { Modal } from '../components/common/Modal';
 import { Skeleton } from '../components/ui/Skeleton';
 import { useToast } from '../context/ToastContext';
+import { useAutoRefresh } from '../hooks/useAutoRefresh';
 
 export const DriverConsole: React.FC = () => {
   const { success, error } = useToast();
@@ -55,6 +56,8 @@ export const DriverConsole: React.FC = () => {
   useEffect(() => {
     fetchDriverData(true);
   }, []);
+
+  useAutoRefresh(fetchDriverData, { intervalMs: 15000 });
 
   const handleToggleAvailability = async () => {
     if (!driverProfile) return;

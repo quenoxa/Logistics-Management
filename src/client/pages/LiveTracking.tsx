@@ -21,6 +21,7 @@ import { StatusBadge } from '../components/common/StatusBadge';
 import { DeliveryMap } from '../components/map/DeliveryMap';
 import { Skeleton } from '../components/ui/Skeleton';
 import { useToast } from '../context/ToastContext';
+import { useAutoRefresh } from '../hooks/useAutoRefresh';
 
 export const LiveTracking: React.FC = () => {
   const { success, error, info } = useToast();
@@ -58,9 +59,9 @@ export const LiveTracking: React.FC = () => {
 
   useEffect(() => {
     fetchActiveDeliveries(true);
-    const interval = setInterval(() => fetchActiveDeliveries(false), 10000);
-    return () => clearInterval(interval);
   }, []);
+
+  useAutoRefresh(fetchActiveDeliveries, { intervalMs: 10000 });
 
   useEffect(() => {
     if (selectedId) {

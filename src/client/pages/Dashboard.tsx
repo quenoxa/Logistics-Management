@@ -20,6 +20,7 @@ import { StatusBadge } from '../components/common/StatusBadge';
 import { DeliveryMap } from '../components/map/DeliveryMap';
 import { CardSkeleton } from '../components/ui/Skeleton';
 import { useToast } from '../context/ToastContext';
+import { useAutoRefresh } from '../hooks/useAutoRefresh';
 
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -48,9 +49,9 @@ export const Dashboard: React.FC = () => {
 
   useEffect(() => {
     fetchDashboardData(true);
-    const interval = setInterval(() => fetchDashboardData(false), 15000);
-    return () => clearInterval(interval);
   }, []);
+
+  useAutoRefresh(fetchDashboardData, { intervalMs: 15000 });
 
   const handleStepSimulation = async () => {
     try {

@@ -20,6 +20,7 @@ import { StatusBadge } from '../components/common/StatusBadge';
 import { DataTable, Column } from '../components/common/DataTable';
 import { Modal } from '../components/common/Modal';
 import { useToast } from '../context/ToastContext';
+import { useAutoRefresh } from '../hooks/useAutoRefresh';
 
 export const Orders: React.FC = () => {
   const navigate = useNavigate();
@@ -91,6 +92,8 @@ export const Orders: React.FC = () => {
   useEffect(() => {
     fetchData(true);
   }, [statusFilter, priorityFilter, cargoFilter]);
+
+  useAutoRefresh(fetchData, { intervalMs: 15000 });
 
   const handleCreateOrder = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -21,6 +21,7 @@ import { DataTable, Column } from '../components/common/DataTable';
 import { Modal } from '../components/common/Modal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { useToast } from '../context/ToastContext';
+import { useAutoRefresh } from '../hooks/useAutoRefresh';
 
 export const Drivers: React.FC = () => {
   const { success, error } = useToast();
@@ -75,6 +76,8 @@ export const Drivers: React.FC = () => {
   useEffect(() => {
     fetchData(true);
   }, [statusFilter, licenseFilter]);
+
+  useAutoRefresh(fetchData, { intervalMs: 15000 });
 
   const handleToggleStatus = async (driverId: string, newStatus: string) => {
     try {

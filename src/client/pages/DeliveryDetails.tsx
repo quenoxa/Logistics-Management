@@ -22,6 +22,7 @@ import { Modal } from '../components/common/Modal';
 import { DeliveryMap } from '../components/map/DeliveryMap';
 import { Skeleton } from '../components/ui/Skeleton';
 import { useToast } from '../context/ToastContext';
+import { useAutoRefresh } from '../hooks/useAutoRefresh';
 
 export const DeliveryDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -38,23 +39,25 @@ export const DeliveryDetails: React.FC = () => {
   const [delayReason, setDelayReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const fetchDetails = async () => {
+  const fetchDetails = async (showLoading = false) => {
     if (!id) return;
     try {
-      setIsLoading(true);
+      if (showLoading) setIsLoading(true);
       const data = await deliveriesApi.getById(id);
       setDelivery(data);
     } catch (err: any) {
       console.error('Failed to load delivery details:', err);
-      error('Error', err.response?.data?.error || 'Failed to load delivery details.');
+      if (showLoading) error('Error', err.response?.data?.error || 'Failed to load delivery details.');
     } finally {
-      setIsLoading(false);
+      if (showLoading) setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchDetails();
+    fetchDetails(true);
   }, [id]);
+
+  useAutoRefresh(fetchDetails, { intervalMs: 15000 });
 
   const handleStatusTransition = async (e: React.FormEvent) => {
     e.preventDefault();

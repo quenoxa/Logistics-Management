@@ -18,6 +18,7 @@ import { StatusBadge } from '../components/common/StatusBadge';
 import { MetricCard } from '../components/common/MetricCard';
 import { CardSkeleton } from '../components/ui/Skeleton';
 import { useToast } from '../context/ToastContext';
+import { useAutoRefresh } from '../hooks/useAutoRefresh';
 
 export const FleetDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -52,6 +53,8 @@ export const FleetDashboard: React.FC = () => {
   useEffect(() => {
     fetchData(true);
   }, []);
+
+  useAutoRefresh(fetchData, { intervalMs: 15000 });
 
   const maintenanceVehicles = vehicles.filter((v) => v.status === 'MAINTENANCE');
   const activeVehicles = vehicles.filter((v) => v.status === 'ACTIVE' || v.status === 'IN_TRANSIT');
