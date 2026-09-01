@@ -1,0 +1,185 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("DISPATCHER") // ADMIN, DISPATCHER, FLEET_MANAGER, DRIVER
+  avatar    String?
+  status    String   @default("ACTIVE")     // ACTIVE, INACTIVE, SUSPENDED
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  driver    Driver?
+  auditLogs AuditLog[]
+}
+
+model Vehicle {
+  id                 String           @id @default(uuid())
+  code               String           @unique // e.g. FL-8021
+  vin                String           @unique
+  make               String
+  model              String
+  year               Int
+  licensePlate       String           @unique
+  type               String           // BOX_TRUCK, SPRINTER_VAN, SEMI_TRAILER, EV_VAN, REEFER_TRUCK
+  status             String           @default("ACTIVE") // ACTIVE, IN_TRANSIT, MAINTENANCE, IDLE, OUT_OF_SERVICE
+  maxPayloadKg       Float
+  maxVolumeM3        Float
+  fuelType           String           // DIESEL, ELECTRIC, GASOLINE, HYBRID
+  currentFuelPercent Float            @default(100.0)
+  currentMileageKm   Float            @default(0.0)
+  currentLat         Float?
+  currentLng         Float?
+  lastServiceDate    DateTime?
+  nextServiceDueKm   Float?
+  assignedDriverId   String?          @unique
+  notes              String?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  assignedDriver     Driver?          @relation(fields: [assignedDriverId], references: [id])
+  maintenanceLogs    MaintenanceLog[]
+  deliveries         Delivery[]
+}
+
+model MaintenanceLog {
+  id          String   @id @default(uuid())
+  vehicleId   String
+  serviceType String   // OIL_CHANGE, BRAKE_INSPECTION, TIRE_ROTATION, BATTERY_CHECK, ENGINE_REPAIR, SCHEDULED_A, SCHEDULED_B
+  description String
+  cost        Float
+  odometerKm  Float
+  serviceDate DateTime
+  performedBy String
+  status      String   @default("COMPLETED") // SCHEDULED, IN_PROGRESS, COMPLETED, CANCELLED
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  vehicle     Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+}
+
+model Driver {
+  id                String    @id @default(uuid())
+  userId            String?   @unique
+  code              String    @unique // e.g. DRV-104
+  firstName         String
+  lastName          String
+  email             String    @unique
+  phone             String
+  licenseNumber     String    @unique
+  licenseClass      String    @default("CDL_A") // CDL_A, CDL_B, STANDARD, HAZMAT_CERTIFIED
+  licenseExpiry     DateTime
+  status            String    @default("AVAILABLE") // AVAILABLE, ON_DELIVERY, OFF_DUTY, ON_LEAVE
+  rating            Float     @default(5.0)
+  totalDeliveries   Int       @default(0)
+  onTimeRatePercent Float     @default(98.5)
+  emergencyContact  String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  user              User?     @relation(fields: [userId], references: [id])
+  currentVehicle    Vehicle?
+  deliveries        Delivery[]
+}
+
+model Order {
+  id              String    @id @default(uuid())
+  orderNumber     String    @unique // e.g. ORD-2026-9041
+  customerName    String
+  customerEmail   String
+  customerPhone   String
+  customerAddress String
+  pickupAddress   String
+  pickupLat       Float
+  pickupLng       Float
+  deliveryAddress String
+  deliveryLat     Float
+  deliveryLng     Float
+  weightKg        Float
+  volumeM3        Float
+  cargoType       String    @default("GENERAL_FREIGHT") // GENERAL_FREIGHT, PERISHABLE, HAZMAT, FRAGILE, COLD_CHAIN, HIGH_VALUE
+  priority        String    @default("STANDARD")        // LOW, STANDARD, HIGH, URGENT
+  status          String    @default("PENDING")         // PENDING, ASSIGNED, IN_TRANSIT, DELIVERED, CANCELLED
+  deliveryFee     Float     @default(0.0)
+  notes           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  delivery        Delivery?
+}
+
+model Delivery {
+  id                  String                  @id @default(uuid())
+  trackingNumber      String                  @unique // e.g. TRK-882910
+  orderId             String                  @unique
+  driverId            String
+  vehicleId           String
+  status              String                  @default("DISPATCHED") // DRAFT, DISPATCHED, PICKED_UP, IN_TRANSIT, OUT_FOR_DELIVERY, DELIVERED, DELAYED, FAILED, CANCELLED
+  priority            String                  @default("STANDARD")   // LOW, STANDARD, HIGH, URGENT
+  pickupScheduledAt   DateTime
+  pickupActualAt      DateTime?
+  deliveryEstimatedAt DateTime
+  deliveryActualAt    DateTime?
+  currentLat          Float?
+  currentLng          Float?
+  progressPercent     Float                   @default(0.0)
+  routeDistanceKm     Float                   @default(0.0)
+  routeDurationMin    Int                     @default(0)
+  recipientSignature  String?
+  delayReason         String?
+  notes               String?
+  createdAt           DateTime                @default(now())
+  updatedAt           DateTime                @updatedAt
+
+  order               Order                   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  driver              Driver                  @relation(fields: [driverId], references: [id])
+  vehicle             Vehicle                 @relation(fields: [vehicleId], references: [id])
+  timelineEvents      DeliveryTimelineEvent[]
+}
+
+model DeliveryTimelineEvent {
+  id           String   @id @default(uuid())
+  deliveryId   String
+  status       String   // Status corresponding to the event
+  title        String
+  description  String
+  locationName String?
+  lat          Float?
+  lng          Float?
+  recordedAt   DateTime @default(now())
+  recordedBy   String?  // Name or system actor
+
+  delivery     Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  userName   String
+  action     String   // e.g. CREATE, UPDATE, DELETE, STATUS_CHANGE, LOGIN, ASSIGNMENT
+  entityType String   // VEHICLE, DRIVER, ORDER, DELIVERY, USER, SETTING
+  entityId   String?
+  details    String?  // JSON string or summary text
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  user       User?    @relation(fields: [userId], references: [id])
+}
+
+model SystemSetting {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       String
+  category    String   @default("GENERAL") // GENERAL, DISPATCH, ALERTS, NOTIFICATIONS, COMPANY
+  description String?
+  updatedAt   DateTime @updatedAt
+}

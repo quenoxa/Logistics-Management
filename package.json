@@ -1,0 +1,17 @@
+{
+  "name": "nexus-fleetops",
+  "version": "1.0.0",
+  "description": "Nexus Logistics & Fleet Management Operations Platform",
+  "scripts": {
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev": "concurrently -n \"BACKEND,FRONTEND\" -c \"cyan,magenta\" \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "setup": "npm run setup:backend && npm run setup:frontend",
+    "setup:backend": "cd backend && npm install && npm run db:push && npm run db:seed",
+    "setup:frontend": "cd frontend && npm install",
+    "build": "cd backend && npm run build && cd ../frontend && npm run build"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}
