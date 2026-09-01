@@ -28,7 +28,7 @@ app.use(express.urlencoded({ extended: true }));
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ONLINE',
-    service: 'Nexus FleetOps API',
+    service: 'LOGISTICS ONE API',
     version: '1.0.0',
     timestamp: new Date().toISOString(),
   });
@@ -62,7 +62,7 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 // Start Server
 app.listen(config.port, () => {
   console.log(`=========================================`);
-  console.log(`🚀 Nexus FleetOps API Server is RUNNING`);
+  console.log(`🚀 LOGISTICS ONE API Server is RUNNING`);
   console.log(`📡 Port: ${config.port}`);
   console.log(`🌐 Base URL: http://localhost:${config.port}/api`);
   console.log(`=========================================`);

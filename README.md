@@ -1,127 +1,162 @@
-# Nexus FleetOps — Logistics & Fleet Operations Command Platform
+# LOGISTICS ONE
 
-A fully functional, end-to-end logistics and fleet management web application engineered for freight dispatchers, fleet managers, and operations coordinators. Built with a dedicated Express.js + TypeScript REST backend, SQLite database with Prisma ORM, and a high-density React (Vite + TailwindCSS + Leaflet + Recharts) frontend.
+> **Enterprise Transportation & Logistics Management Platform**
+
+LOGISTICS ONE is a production-grade, single-repository full-stack logistics and fleet operations platform built with **React 18**, **TypeScript**, **Tailwind CSS**, **Express.js**, and **SQLite (via Prisma ORM)**.
 
 ---
 
-## ⚡ Quick Start Guide
+## 🏗️ Architecture & Single Full-Stack Structure
 
-### 1. Launch Full Stack (Single Command)
-From the root directory:
+The application is organized as a unified full-stack codebase where the frontend React SPA and Express REST API backend coexist cleanly:
+
+```
+Logistics-management/
+│
+├── src/
+│   ├── components/          # Reusable UI components (MetricCard, DataTable, Modal, StatusBadge, Header, Sidebar)
+│   │   ├── common/
+│   │   └── map/             # Interactive Leaflet corridor map
+│   ├── pages/               # React application pages (Dashboard, Deliveries, Vehicles, Drivers, Orders, etc.)
+│   ├── layouts/             # Page layouts
+│   ├── hooks/               # Custom React hooks
+│   ├── services/            # API client service layer (Axios with Bearer JWT interceptors)
+│   ├── utils/               # Shared frontend utility functions
+│   ├── assets/              # Static assets and icons
+│   ├── types/               # TypeScript interfaces matching backend models
+│   ├── context/             # React AuthContext (session management)
+│   │
+│   ├── server/              # Backend Express API
+│   │   ├── routes/          # REST route controllers (auth, vehicles, drivers, orders, deliveries, tracking, reports, settings, admin)
+│   │   ├── controllers/     # Business logic handlers
+│   │   ├── models/          # Data access models
+│   │   ├── middleware/      # JWT authentication and RBAC authorization middleware
+│   │   ├── services/        # Backend services
+│   │   ├── utils/           # Backend utilities & helpers
+│   │   ├── server.ts        # Express server entry point (Port 5000)
+│   │   ├── test-suite.ts    # 19-point automated backend test suite
+│   │   ├── audit-runner.ts  # 43-point full-stack integration audit suite
+│   │   └── smoke-test-runner.ts # 4-phase end-to-end user smoke test runner
+│   │
+│   ├── App.tsx              # Protected layout router & role-based landing redirect
+│   ├── main.tsx             # React DOM entry point
+│   └── index.css            # Tailwind CSS directives
+│
+├── prisma/                  # Database schema & seeder
+│   ├── schema.prisma        # Prisma data models and relations
+│   ├── seed.ts              # Seeder with Indian logistics freight corridors
+│   └── dev.db               # Persistent SQLite database file
+│
+├── public/                  # Public static assets
+├── .env                     # Environment variables
+├── .env.example             # Example environment template
+├── .gitignore
+├── index.html               # Main HTML entry point
+├── package.json             # Unified single root package configuration
+├── tsconfig.json            # Frontend TypeScript configuration
+├── tsconfig.server.json     # Backend TypeScript configuration
+├── tsconfig.node.json       # Vite configuration TypeScript settings
+├── vite.config.ts           # Vite bundler & API proxy configuration
+├── tailwind.config.js       # Tailwind CSS design system
+└── README.md
+```
+
+---
+
+## ⚡ Quick Start
+
+### 1. Prerequisites
+* **Node.js**: `v18.0+` or `v20.0+`
+* **npm**: `v9.0+`
+
+### 2. Installation
 ```bash
-# Starts both the backend API (Port 5000) and frontend SPA (Port 5173) concurrently
+# Clone the repository
+git clone https://github.com/Benedict-Edwin/Logistics-management.git
+cd Logistics-management
+
+# Install unified dependencies
+npm install
+```
+
+### 3. Initialize & Seed Database
+```bash
+# Push Prisma schema to SQLite
+npm run db:push
+
+# Populate initial Indian logistics corridors and accounts
+npm run db:seed
+```
+
+### 4. Start Full-Stack Application (Concurrent)
+```bash
+# Starts both Express API (:5000) and Vite React Frontend (:5173)
 npm run dev
 ```
 
-Alternatively, run in separate terminals:
-```bash
-# Terminal 1: Backend API
-cd backend
-npm run dev
+* **Frontend URL**: `http://localhost:5173`
+* **Backend API**: `http://localhost:5000/api`
+* **API Healthcheck**: `http://localhost:5000/api/health`
 
-# Terminal 2: Frontend SPA
-cd frontend
-npm run dev
+---
+
+## 👥 Demo User Accounts & Roles
+
+| Role | Email | Password | Landing Page | Access Scope |
+|---|---|---|---|---|
+| **Administrator** | `admin@fleetops.io` | `admin123` | `/` (Operations) | Full system administration, user accounts, security audit logs, depot parameters |
+| **Dispatcher** | `dispatcher@fleetops.io` | `dispatch123` | `/` (Operations) | Freight order booking, fleet dispatch, route radar, driver matching |
+| **Fleet Operations Manager** | `ops@fleetops.io` | `ops123` | `/fleet-dashboard` | Vehicle inventory, workshop maintenance records, driver credentials & availability |
+| **Commercial Driver** | `driver@fleetops.io` | `driver123` | `/driver-console` | Mobile-ready Driver Console, milestone progression, digital Proof of Delivery (POD) |
+
+---
+
+## 🛡️ Core Capabilities & Workflows
+
+1. **Transactional Dispatch & Anti-Double-Booking**:
+   * Automatic validation against vehicle payload capacity (`order.weightKg <= vehicle.maxPayloadKg`).
+   * Prevents assigning drivers or vehicles that are already en route on active shipments (**HTTP 409 Conflict**).
+   * Rejects vehicles flagged with `MAINTENANCE` status.
+
+2. **Sequential 6-Step Delivery Lifecycle**:
+   * `DISPATCHED` &rarr; `PICKED_UP` &rarr; `IN_TRANSIT` &rarr; `OUT_FOR_DELIVERY` &rarr; `DELIVERED` (with signature capture) or `DELAYED`.
+   * Real timestamped milestone events recorded in `DeliveryTimelineEvent` table.
+
+3. **Real-time SQL Aggregations**:
+   * Operations Dashboard KPIs, 7-day delivery volume trends, SLA on-time percentage, and driver leaderboards calculated dynamically from SQLite.
+
+4. **Role-Based Security**:
+   * Strict backend authorization (`requireRole` middleware) blocking unauthorized role access with **HTTP 403 Forbidden**.
+
+---
+
+## 🧪 Automated Testing
+
+```bash
+# Run 19-point backend verification suite
+npm run test:suite
+
+# Run 43-point full integration audit suite
+npm run test:audit
+
+# Run 4-phase end-to-end user smoke test runner
+npm run test:smoke
+
+# Compile & verify production build
+npm run build
 ```
 
-Open your browser at: **`http://localhost:5173`**
-
 ---
 
-## 🔑 Demo Accounts & One-Click Presets
+## 📦 Production Build
 
-The login screen includes **one-click demo login buttons** for instant testing across all RBAC roles:
-
-| Role | Email | Password | Permissions |
-| :--- | :--- | :--- | :--- |
-| **Administrator** | `admin@fleetops.io` | `admin123` | Full access (Users, Audit Logs, Settings, Dispatch, Fleet) |
-| **Dispatcher** | `dispatcher@fleetops.io` | `dispatch123` | Orders, Deliveries, State Machine transitions, Live Radar |
-| **Fleet Ops Manager** | `ops@fleetops.io` | `ops123` | Vehicle Fleet, Maintenance scheduling, Driver roster |
-| **Commercial Driver** | `driver@fleetops.io` | `driver123` | View assigned routes, delivery status |
-
----
-
-## 🛠️ Technology Stack
-
-- **Backend**: Node.js, Express.js, TypeScript, Prisma ORM v5, SQLite (`dev.db`), JWT Auth, bcryptjs, Zod validation.
-- **Frontend**: React 18, Vite, TypeScript, TailwindCSS (Operations Dark Theme), Leaflet & React-Leaflet, Recharts, Lucide Icons, Date-fns, Axios.
-- **Data Engine**: Real SQL database with foreign key constraints, ACID transaction state machines, anti-double-booking checks, and dynamic aggregation queries.
-
----
-
-## 🖥️ Screen & Feature Overview
-
-### 1. **Login Screen (`/login`)**
-- Secure JWT email/password authentication.
-- One-click demo role presets for instant evaluation.
-- Protected route middleware preserving authentication session.
-
-### 2. **Operations Dashboard (`/`)**
-- 8 real-time KPI widgets (Active Deliveries, Fleet Utilization %, Available Drivers, On-Time SLA %, Pending Orders, Completed Shipments, Exceptions, Total Revenue).
-- Live Metro Freight Radar mini-map with real-time asset coordinates.
-- Active Deliveries Ticker with live progress bars.
-- One-click simulation step trigger to advance fleet coordinates in real-time.
-
-### 3. **Fleet Vehicles (`/vehicles`)**
-- Commercial fleet asset table with multi-filter (Status: Active, In Transit, Maintenance, Idle; Class: Semi-Trailer, Box Truck, EV Van, Reefer, Sprinter).
-- Real-time fuel/battery gauges, odometer readings, and assigned driver pairings.
-- **Register New Vehicle modal** with validation for VIN, payload capacity, and fuel platform.
-- **Vehicle Detail & Maintenance Drawer**: Complete asset specs + service history log + **Log Service / Schedule Maintenance form**.
-
-### 4. **Driver Roster (`/drivers`)**
-- Commercial driver roster with CDL class, expiration dates, safety ratings, and delivery counts.
-- **Live shift availability switcher** (toggle between `AVAILABLE`, `OFF_DUTY`, `ON_LEAVE` directly from the table).
-- Anti-double-booking locks preventing dispatching drivers who are on active deliveries.
-- Onboard new driver modal with certification recording.
-
-### 5. **Orders & Freight Manifest (`/orders`)**
-- Multi-dimensional filtering by cargo type (`Cold Chain -20°C`, `HazMat Class 3`, `General Freight`, `Perishable`, `High Value`) and priority.
-- **Book New Cargo Order modal** with origin/destination address and cargo volume/weight parameters.
-- **Dispatch Assignment Workflow Modal**:
-  - Automatically suggests available drivers and compatible vehicles with sufficient payload capacity.
-  - Validates anti-double-booking and creates linked delivery.
-
-### 6. **Deliveries Dispatch Command (`/deliveries`)**
-- Central dispatch manifest table with tracking numbers (`TRK-XXXXXX`), route distances, progress bars, and status badges.
-- Filter by status, priority, driver, and vehicle.
-
-### 7. **Delivery Details & State Machine (`/deliveries/:id`)**
-- Full 6-step lifecycle visualizer: `ORDER_PLACED` &rarr; `DISPATCHED` &rarr; `PICKED_UP` &rarr; `IN_TRANSIT` &rarr; `OUT_FOR_DELIVERY` &rarr; `DELIVERED`.
-- **Interactive State Machine Transition Modal**: advances lifecycle state, records delay reasons, or captures digital POD recipient signatures.
-- Timestamped audit timeline with recorded personnel and GPS coordinates for every milestone.
-- Embedded corridor route map showing origin, destination, and vehicle position.
-
-### 8. **Live GPS Telemetry & Radar (`/tracking`)**
-- Interactive Leaflet dark radar map with waypoint polylines and animated vehicle markers.
-- **Tactical Telemetry HUD**: Ground speed (km/h), compass heading, dynamic ETA countdown, cargo temp (°C), battery/fuel %, and 5G signal status.
-- **Simulation Engine**: Step selected vehicle, step all fleet vehicles, or toggle **Auto-Play Simulation** to watch deliveries progress automatically.
-
-### 9. **Reports & Analytics (`/reports`)**
-- **7-Day Delivery Volume Trend**: Interactive bar chart comparing On-Time vs Delayed vs Dispatched shipments.
-- **Delay Root Causes Breakdown**: Interactive donut chart analyzing traffic, weather, dock queues, and inspection holds.
-- **Fleet Asset Utilization**: Mileage and maintenance cost analysis grouped by commercial vehicle class.
-- **Driver Leaderboard**: Performance scorecard ranking by total deliveries and on-time SLA rate.
-- **Export Analytics (CSV)**: Instant client-side download of delivery manifest data.
-
-### 10. **System Configuration (`/settings`)**
-- Hub depot geolocation parameters (Port of NY/NJ coordinates).
-- Dispatch automation rules and maximum driver daily hours (DOT compliance).
-- Alert triggers: Speed limit alerts (km/h), delay warning threshold (min), low fuel alert (%).
-- Measurement unit toggle (Metric / Imperial).
-
-### 11. **Admin Console & Audit Stream (`/admin`)**
-- RBAC Operator user management (Create, Edit Role/Status, Reset Password, Delete).
-- **Cryptographic Audit Stream**: Filterable log of every login, dispatch, state transition, and configuration update.
-- **Engine Health Diagnostics**: Real-time server uptime, memory usage (Heap & RSS), and live database table entity counts.
-
----
-
-## 🧪 Verification & Testing
-
-To run the automated backend test suite:
 ```bash
-cd backend
-npx ts-node src/test-suite.ts
+npm run build
 ```
 
-All 19 tests will execute and verify authentication, vehicles, drivers, orders, state machine transitions, anti-double-booking locks, and dynamic aggregations.
+This compiles TypeScript and outputs an optimized production build to the `dist/` directory.
+
+---
+
+## 📄 License
+MIT License. Created by Benedict Edwin.

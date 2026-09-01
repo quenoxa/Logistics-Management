@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Starting Nexus FleetOps Database Seeding (Indian Logistics Hub)...');
+  console.log('🌱 Starting LOGISTICS ONE Database Seeding (Indian Logistics Hub)...');
 
   // 1. Clean existing records
   await prisma.deliveryTimelineEvent.deleteMany({});

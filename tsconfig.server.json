@@ -5,13 +5,12 @@
     "lib": ["es2022"],
     "moduleResolution": "node",
     "outDir": "./dist",
-    "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true
   },
-  "include": ["src/**/*", "prisma/**/*"],
+  "include": ["src/server/**/*", "prisma/**/*"],
   "exclude": ["node_modules", "dist"]
 }
