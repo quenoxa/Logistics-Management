@@ -70,6 +70,8 @@ interface DeliveryMapProps {
     trackingNumber?: string;
     speed?: number;
   }>;
+  selectedDeliveryId?: string;
+  routeData?: any;
   height?: string;
 }
 
@@ -79,6 +81,8 @@ export const DeliveryMap: React.FC<DeliveryMapProps> = ({
   currentPosition,
   waypoints = [],
   vehicles = [],
+  selectedDeliveryId,
+  routeData,
   height = '420px',
 }) => {
   const defaultCenter: [number, number] = [19.2967, 73.0631];
@@ -90,10 +94,14 @@ export const DeliveryMap: React.FC<DeliveryMapProps> = ({
   vehicles.forEach((v) => allPoints.push([v.lat, v.lng]));
   waypoints.forEach((p) => allPoints.push(p));
 
+  if (routeData?.routePolyline) {
+    routeData.routePolyline.forEach((pt: [number, number]) => allPoints.push(pt));
+  }
+
   const center: [number, number] = allPoints.length > 0 ? allPoints[0] : defaultCenter;
 
   return (
-    <div style={{ height }} className="w-full rounded-xl overflow-hidden border border-slate-200 relative shadow-sm">
+    <div style={{ height }} className="w-full rounded-lg overflow-hidden border border-slate-200 relative shadow-2xs">
       <MapContainer
         center={center}
         zoom={11}
@@ -111,9 +119,9 @@ export const DeliveryMap: React.FC<DeliveryMapProps> = ({
         {origin && (
           <Marker position={[origin.lat, origin.lng]} icon={originIcon}>
             <Popup>
-              <div className="font-mono text-xs">
-                <span className="text-blue-600 font-bold block mb-0.5">ORIGIN / PICKUP HUB</span>
-                <p className="text-slate-700">{origin.label || `${origin.lat.toFixed(4)}, ${origin.lng.toFixed(4)}`}</p>
+              <div className="text-xs p-1">
+                <span className="font-semibold text-blue-600 block">Pickup Facility</span>
+                <span>{origin.label || 'Origin Depot'}</span>
               </div>
             </Popup>
           </Marker>
@@ -123,66 +131,66 @@ export const DeliveryMap: React.FC<DeliveryMapProps> = ({
         {destination && (
           <Marker position={[destination.lat, destination.lng]} icon={destinationIcon}>
             <Popup>
-              <div className="font-mono text-xs">
-                <span className="text-emerald-700 font-bold block mb-0.5">DELIVERY DESTINATION</span>
-                <p className="text-slate-700">{destination.label || `${destination.lat.toFixed(4)}, ${destination.lng.toFixed(4)}`}</p>
+              <div className="text-xs p-1">
+                <span className="font-semibold text-emerald-600 block">Destination</span>
+                <span>{destination.label || 'Customer Drop-off'}</span>
               </div>
             </Popup>
           </Marker>
         )}
 
-        {/* Single Current Position Marker */}
-        {currentPosition && (
-          <Marker position={[currentPosition.lat, currentPosition.lng]} icon={vehicleIcon}>
-            <Popup>
-              <div className="font-mono text-xs">
-                <span className="text-orange-600 font-bold block mb-0.5">ACTIVE VEHICLE POSITION</span>
-                <p className="text-slate-700">GPS: {currentPosition.lat.toFixed(5)}, {currentPosition.lng.toFixed(5)}</p>
-              </div>
-            </Popup>
-          </Marker>
-        )}
-
-        {/* Multiple Fleet Vehicles */}
+        {/* Vehicle Markers */}
         {vehicles.map((v) => (
           <Marker key={v.id} position={[v.lat, v.lng]} icon={vehicleIcon}>
             <Popup>
-              <div className="font-mono text-xs space-y-1">
-                <div className="flex items-center justify-between gap-2 border-b border-slate-200 pb-1">
-                  <span className="text-orange-600 font-bold">{v.code}</span>
-                  <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-700 font-semibold">{v.status}</span>
+              <div className="text-xs p-1 space-y-1">
+                <span className="font-bold text-orange-600 block">{v.code}</span>
+                {v.trackingNumber && <span className="font-mono text-slate-700 block">#{v.trackingNumber}</span>}
+                <div className="flex justify-between text-slate-500 text-[11px] gap-2 pt-1 border-t border-slate-100">
+                  <span>Status: {v.status}</span>
+                  {v.speed !== undefined && <span>{v.speed} km/h</span>}
                 </div>
-                {v.trackingNumber && (
-                  <p className="text-slate-600">Tracking: <span className="text-slate-900 font-bold">{v.trackingNumber}</span></p>
-                )}
-                {v.speed !== undefined && (
-                  <p className="text-slate-500 text-[11px]">Speed: <span className="text-emerald-700 font-bold">{v.speed} km/h</span></p>
-                )}
               </div>
             </Popup>
           </Marker>
         ))}
 
+        {/* Current Position Marker if single view */}
+        {currentPosition && !vehicles.length && (
+          <Marker position={[currentPosition.lat, currentPosition.lng]} icon={vehicleIcon}>
+            <Popup>
+              <div className="text-xs p-1">
+                <span className="font-bold text-orange-600 block">Current Location</span>
+                <span className="font-mono text-slate-600 text-[11px]">
+                  {currentPosition.lat.toFixed(4)}, {currentPosition.lng.toFixed(4)}
+                </span>
+              </div>
+            </Popup>
+          </Marker>
+        )}
+
         {/* Route Polyline */}
         {waypoints.length > 1 && (
-          <>
-            <Polyline
-              positions={waypoints}
-              pathOptions={{
-                color: '#ea580c',
-                weight: 4,
-                opacity: 0.9,
-              }}
-            />
-            <Polyline
-              positions={waypoints}
-              pathOptions={{
-                color: '#ea580c',
-                weight: 8,
-                opacity: 0.2,
-              }}
-            />
-          </>
+          <Polyline
+            positions={waypoints}
+            pathOptions={{
+              color: '#3b82f6',
+              weight: 4,
+              opacity: 0.8,
+              dashArray: '8, 8',
+            }}
+          />
+        )}
+
+        {routeData?.routePolyline && (
+          <Polyline
+            positions={routeData.routePolyline}
+            pathOptions={{
+              color: '#ea580c',
+              weight: 4,
+              opacity: 0.85,
+            }}
+          />
         )}
       </MapContainer>
     </div>

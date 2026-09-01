@@ -7,13 +7,22 @@ import {
   Clock,
   RotateCw,
   ShieldCheck,
+  Smartphone,
+  Navigation,
+  ArrowRight,
+  User,
+  Power,
+  Calendar,
 } from 'lucide-react';
-import { deliveriesApi, driversApi } from '../api/client';
-import { Delivery, Driver } from '../types';
+import { deliveriesApi, driversApi } from '../services/api';
+import { Delivery, Driver } from '../../shared/types';
 import { StatusBadge } from '../components/common/StatusBadge';
 import { Modal } from '../components/common/Modal';
+import { Skeleton } from '../components/ui/Skeleton';
+import { useToast } from '../context/ToastContext';
 
 export const DriverConsole: React.FC = () => {
+  const { success, error } = useToast();
   const [activeDelivery, setActiveDelivery] = useState<Delivery | null>(null);
   const [driverProfile, setDriverProfile] = useState<Driver | null>(null);
   const [history, setHistory] = useState<Delivery[]>([]);
@@ -25,9 +34,9 @@ export const DriverConsole: React.FC = () => {
   const [recipientName, setRecipientName] = useState('');
   const [deliveryNotes, setDeliveryNotes] = useState('');
 
-  const fetchDriverData = async () => {
+  const fetchDriverData = async (showLoading = true) => {
     try {
-      setIsLoading(true);
+      if (showLoading) setIsLoading(true);
       const [currentData, historyData] = await Promise.all([
         deliveriesApi.getDriverCurrent(),
         deliveriesApi.getDriverHistory(),
@@ -35,15 +44,16 @@ export const DriverConsole: React.FC = () => {
       setActiveDelivery(currentData.delivery);
       setDriverProfile(currentData.driver);
       setHistory(historyData.history || []);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to load driver console data:', err);
+      error('Sync Error', 'Failed to load assigned trips from hub dispatch.');
     } finally {
-      setIsLoading(false);
+      if (showLoading) setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchDriverData();
+    fetchDriverData(true);
   }, []);
 
   const handleToggleAvailability = async () => {
@@ -52,9 +62,10 @@ export const DriverConsole: React.FC = () => {
     try {
       setIsUpdating(true);
       await driversApi.updateStatus(driverProfile.id, nextStatus);
-      await fetchDriverData();
+      success('Shift Status Updated', `You are now marked as ${nextStatus.replace(/_/g, ' ')}.`);
+      await fetchDriverData(false);
     } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to update shift status');
+      error('Shift Update Failed', err.response?.data?.error || 'Failed to update shift status.');
     } finally {
       setIsUpdating(false);
     }
@@ -72,12 +83,13 @@ export const DriverConsole: React.FC = () => {
       setIsUpdating(true);
       await deliveriesApi.transitionStatus(activeDelivery.id, {
         nextStatus,
-        notes: `Driver status advanced to ${nextStatus}`,
-        locationName: nextStatus === 'PICKED_UP' ? activeDelivery.order.pickupAddress : 'En Route',
+        notes: `Driver milestone update: ${nextStatus}`,
+        locationName: nextStatus === 'PICKED_UP' ? activeDelivery.order.pickupAddress : 'En Route Highway Corridor',
       });
-      await fetchDriverData();
+      success('Milestone Logged', `Status advanced to ${nextStatus.replace(/_/g, ' ')}.`);
+      await fetchDriverData(false);
     } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to update delivery milestone');
+      error('Update Failed', err.response?.data?.error || 'Failed to advance delivery milestone.');
     } finally {
       setIsUpdating(false);
     }
@@ -95,140 +107,148 @@ export const DriverConsole: React.FC = () => {
         notes: deliveryNotes,
         locationName: activeDelivery.order.deliveryAddress,
       });
+      success('Trip Completed! 🎉', 'Digital Proof of Delivery verified & recorded.');
       setIsSignModalOpen(false);
       setRecipientName('');
       setDeliveryNotes('');
-      await fetchDriverData();
+      await fetchDriverData(false);
     } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to confirm delivery');
+      error('Completion Error', err.response?.data?.error || 'Failed to record Proof of Delivery.');
     } finally {
       setIsUpdating(false);
     }
   };
 
-  if (isLoading) {
+  if (isLoading && !driverProfile) {
     return (
-      <div className="py-20 text-center text-slate-500 text-xs">
-        <div className="inline-flex items-center gap-2">
-          <RotateCw className="w-4 h-4 animate-spin text-slate-400" />
-          <span>Loading driver console...</span>
-        </div>
+      <div className="max-w-3xl mx-auto space-y-5 pb-16">
+        <Skeleton className="h-20 w-full rounded-lg" />
+        <Skeleton className="h-64 w-full rounded-lg" />
+        <Skeleton className="h-48 w-full rounded-lg" />
       </div>
     );
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-5 pb-16">
-      {/* Driver Header & Shift Status Toggle */}
-      <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-xs flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm font-semibold text-slate-900">
-              {driverProfile ? `${driverProfile.firstName} ${driverProfile.lastName}` : 'Commercial Driver'}
-            </span>
-            <span className="text-xs text-slate-500 font-medium">
-              ({driverProfile?.code || 'DRV-101'})
-            </span>
+    <div className="max-w-3xl mx-auto space-y-6 pb-16">
+      {/* Driver Header Profile Bar */}
+      <div className="p-4 bg-white border border-slate-200 rounded-lg shadow-2xs flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center space-x-3.5">
+          <div className="w-11 h-11 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-sm shadow-xs">
+            {driverProfile ? `${driverProfile.firstName[0]}${driverProfile.lastName[0]}` : 'D'}
           </div>
-          <p className="text-xs text-slate-500 mt-0.5">
-            License: {driverProfile?.licenseNumber || 'DL-MH-2022-00912'} &bull; Rating: ★ {driverProfile?.rating.toFixed(2) || '4.95'}
-          </p>
+          <div>
+            <div className="flex items-center space-x-2">
+              <h2 className="text-base font-bold text-slate-900">
+                {driverProfile ? `${driverProfile.firstName} ${driverProfile.lastName}` : 'Commercial Operator'}
+              </h2>
+              <span className="px-2 py-0.5 rounded bg-slate-100 font-mono text-[11px] font-semibold text-slate-700">
+                {driverProfile?.driverCode || 'DRV-101'}
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 mt-0.5">
+              CDL Class: {driverProfile?.licenseClass || 'CDL-A'} &bull; {driverProfile?.phone}
+            </p>
+          </div>
         </div>
 
-        <button
-          onClick={handleToggleAvailability}
-          disabled={isUpdating || activeDelivery?.status === 'IN_TRANSIT'}
-          className={`px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-1.5 transition-colors border ${
-            driverProfile?.status === 'AVAILABLE' || driverProfile?.status === 'ON_DELIVERY'
-              ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
-              : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
-          } disabled:opacity-50`}
-        >
-          <span className={`w-2 h-2 rounded-full ${driverProfile?.status === 'AVAILABLE' || driverProfile?.status === 'ON_DELIVERY' ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
-          <span>{driverProfile?.status === 'OFF_DUTY' ? 'Off duty (Tap to go online)' : 'Online / Available'}</span>
-        </button>
+        <div className="flex items-center space-x-2.5">
+          <button
+            onClick={() => fetchDriverData(true)}
+            className="p-2 rounded-md bg-white hover:bg-slate-50 border border-slate-300 text-slate-600 shadow-2xs transition-colors"
+            title="Refresh assigned trip"
+          >
+            <RotateCw className="w-4 h-4" />
+          </button>
+
+          {driverProfile?.status !== 'ON_DELIVERY' && (
+            <button
+              onClick={handleToggleAvailability}
+              disabled={isUpdating}
+              className={`px-3 py-1.5 rounded-md text-xs font-semibold inline-flex items-center gap-1.5 transition-colors shadow-2xs ${
+                driverProfile?.status === 'AVAILABLE'
+                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                  : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300'
+              }`}
+            >
+              <Power className="w-3.5 h-3.5" />
+              <span>{driverProfile?.status === 'AVAILABLE' ? 'On Shift (Available)' : 'Off Duty (Tap to Go Online)'}</span>
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Main Active Delivery Section */}
+      {/* Active Shipment Section */}
       {activeDelivery ? (
-        <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-xs space-y-4">
-          {/* Top Info Bar */}
-          <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+        <div className="p-5 bg-white border border-slate-200 rounded-lg shadow-2xs space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div className="flex items-center space-x-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                Current Assigned Dispatch
+              </h3>
+            </div>
+            <StatusBadge status={activeDelivery.status} type="delivery" />
+          </div>
+
+          <div>
+            <span className="font-mono text-lg font-bold text-slate-900 block">
+              {activeDelivery.trackingNumber}
+            </span>
+            <p className="text-xs text-slate-600 mt-0.5">
+              Customer: <span className="font-semibold text-slate-800">{activeDelivery.order?.customerName}</span> ({activeDelivery.order?.customerPhone})
+            </p>
+          </div>
+
+          {/* Pickup and Dropoff Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-1">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                <MapPin className="w-3.5 h-3.5 text-blue-600" />
+                <span>Pickup Origin</span>
+              </span>
+              <p className="text-slate-800 font-medium">{activeDelivery.order?.pickupAddress}</p>
+            </div>
+
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-1">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Destination Drop-off</span>
+              </span>
+              <p className="text-slate-800 font-medium">{activeDelivery.order?.deliveryAddress}</p>
+            </div>
+          </div>
+
+          {/* Cargo Specs */}
+          <div className="grid grid-cols-3 gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-center text-xs">
             <div>
-              <span className="text-xs text-slate-500 font-medium block">Current assigned trip</span>
-              <span className="text-base font-semibold text-slate-900">{activeDelivery.trackingNumber}</span>
+              <span className="text-[10px] text-slate-400 block uppercase">Weight</span>
+              <span className="font-semibold text-slate-900 font-mono">{activeDelivery.order?.weightKg.toLocaleString()} kg</span>
             </div>
-            <StatusBadge status={activeDelivery.status} type="delivery" size="md" />
-          </div>
-
-          {/* Assigned Vehicle */}
-          <div className="p-3 bg-slate-50 border border-slate-200 rounded-md flex items-center justify-between text-xs">
-            <div className="flex items-center space-x-2.5">
-              <Truck className="w-4 h-4 text-slate-500" />
-              <div>
-                <span className="text-slate-900 font-medium block">{activeDelivery.vehicle?.code || 'VEH-401'}</span>
-                <span className="text-[11px] text-slate-500">{activeDelivery.vehicle?.make} {activeDelivery.vehicle?.model} ({activeDelivery.vehicle?.licensePlate})</span>
-              </div>
+            <div>
+              <span className="text-[10px] text-slate-400 block uppercase">Volume</span>
+              <span className="font-semibold text-slate-900 font-mono">{activeDelivery.order?.volumeM3} m³</span>
             </div>
-            <div className="text-right">
-              <span className="text-[11px] text-slate-500 block">Fuel / Battery</span>
-              <span className="font-medium text-slate-800">{activeDelivery.vehicle?.currentFuelPercent || 85}%</span>
+            <div>
+              <span className="text-[10px] text-slate-400 block uppercase">Vehicle</span>
+              <span className="font-semibold text-slate-900 font-mono">{activeDelivery.vehicle?.code || 'VEH'}</span>
             </div>
           </div>
 
-          {/* Route Card: Pickup to Destination */}
-          <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-md space-y-3">
-            {/* Pickup */}
-            <div className="flex items-start space-x-2.5">
-              <div className="w-5 h-5 rounded-full bg-slate-200 flex items-center justify-center shrink-0 mt-0.5 text-slate-700 text-xs font-semibold">
-                A
-              </div>
-              <div className="flex-1 text-xs">
-                <span className="text-[11px] text-slate-500 block">Pickup location</span>
-                <p className="text-slate-900 font-medium">{activeDelivery.order.pickupAddress}</p>
-              </div>
-            </div>
+          {/* Progressive Action Stepper */}
+          <div className="pt-2 space-y-2">
+            <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+              Required Next Action
+            </h4>
 
-            {/* Connecting Arrow */}
-            <div className="pl-2.5 border-l-2 border-slate-300 ml-2.5 h-3"></div>
-
-            {/* Destination */}
-            <div className="flex items-start space-x-2.5">
-              <div className="w-5 h-5 rounded-full bg-slate-900 flex items-center justify-center shrink-0 mt-0.5 text-white text-xs font-semibold">
-                B
-              </div>
-              <div className="flex-1 text-xs">
-                <span className="text-[11px] text-slate-500 block">Delivery destination</span>
-                <p className="text-slate-900 font-medium">{activeDelivery.order.deliveryAddress}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Customer & Cargo specs */}
-          <div className="grid grid-cols-2 gap-3 text-xs">
-            <div className="p-3 bg-slate-50 border border-slate-200 rounded-md">
-              <span className="text-[11px] text-slate-500 block">Customer</span>
-              <span className="text-slate-900 font-medium block truncate">{activeDelivery.order.customerName}</span>
-              <span className="text-[11px] text-slate-500">{activeDelivery.order.customerPhone || '+91 98200 12345'}</span>
-            </div>
-
-            <div className="p-3 bg-slate-50 border border-slate-200 rounded-md">
-              <span className="text-[11px] text-slate-500 block">Cargo & Route</span>
-              <span className="text-slate-900 font-medium block">{activeDelivery.order.weightKg.toLocaleString()} kg</span>
-              <span className="text-[11px] text-slate-600">{activeDelivery.routeDistanceKm} km ({activeDelivery.routeDurationMin} min)</span>
-            </div>
-          </div>
-
-          {/* Status Transitions */}
-          <div className="space-y-2 pt-2">
             {activeDelivery.status === 'DISPATCHED' && (
               <button
                 onClick={() => handleAdvanceStatus('PICKED_UP')}
                 disabled={isUpdating}
-                className="w-full py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white font-medium text-xs rounded-md shadow-xs flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+                className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-bold text-sm flex items-center justify-center gap-2 shadow-xs transition-colors disabled:opacity-50"
               >
-                <Package className="w-4 h-4" />
-                <span>1. Confirm cargo pickup</span>
+                <Package className="w-4 h-4 text-orange-400" />
+                <span>1. Confirm Cargo Loaded & Picked Up</span>
               </button>
             )}
 
@@ -236,10 +256,10 @@ export const DriverConsole: React.FC = () => {
               <button
                 onClick={() => handleAdvanceStatus('IN_TRANSIT')}
                 disabled={isUpdating}
-                className="w-full py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white font-medium text-xs rounded-md shadow-xs flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-sm flex items-center justify-center gap-2 shadow-xs transition-colors disabled:opacity-50"
               >
-                <Truck className="w-4 h-4" />
-                <span>2. Start transit</span>
+                <Navigation className="w-4 h-4" />
+                <span>2. Start Highway Corridor Transit</span>
               </button>
             )}
 
@@ -247,10 +267,10 @@ export const DriverConsole: React.FC = () => {
               <button
                 onClick={() => handleAdvanceStatus('OUT_FOR_DELIVERY')}
                 disabled={isUpdating}
-                className="w-full py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white font-medium text-xs rounded-md shadow-xs flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+                className="w-full py-3 bg-blue-700 hover:bg-blue-800 text-white rounded-lg font-bold text-sm flex items-center justify-center gap-2 shadow-xs transition-colors disabled:opacity-50"
               >
-                <MapPin className="w-4 h-4" />
-                <span>3. Arrive in destination area</span>
+                <Truck className="w-4 h-4" />
+                <span>3. Arrive in Destination Drop-off Zone</span>
               </button>
             )}
 
@@ -258,58 +278,49 @@ export const DriverConsole: React.FC = () => {
               <button
                 onClick={() => handleAdvanceStatus('DELIVERED')}
                 disabled={isUpdating}
-                className="w-full py-2.5 px-4 bg-emerald-700 hover:bg-emerald-800 text-white font-medium text-xs rounded-md shadow-xs flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+                className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-sm flex items-center justify-center gap-2 shadow-xs transition-colors disabled:opacity-50"
               >
-                <CheckCircle2 className="w-4 h-4" />
-                <span>4. Complete delivery & sign POD</span>
-              </button>
-            )}
-
-            {activeDelivery.status === 'DELAYED' && (
-              <button
-                onClick={() => handleAdvanceStatus('IN_TRANSIT')}
-                disabled={isUpdating}
-                className="w-full py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white font-medium text-xs rounded-md shadow-xs flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
-              >
-                <RotateCw className="w-4 h-4" />
-                <span>Resume transit</span>
+                <ShieldCheck className="w-4 h-4 text-emerald-200" />
+                <span>4. Complete Delivery & Sign Proof of Delivery</span>
               </button>
             )}
           </div>
         </div>
       ) : (
-        /* Standby state when no delivery is currently active */
-        <div className="bg-white border border-slate-200 rounded-lg p-8 shadow-xs text-center space-y-2">
-          <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-500">
-            <CheckCircle2 className="w-5 h-5" />
+        <div className="p-8 text-center bg-white border border-slate-200 rounded-lg shadow-2xs space-y-3">
+          <div className="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+            <Truck className="w-6 h-6" />
           </div>
-          <h3 className="text-sm font-semibold text-slate-900">No active delivery assigned</h3>
+          <h3 className="text-sm font-bold text-slate-800">No Active Shipments Assigned</h3>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
-            You are currently on standby. The dispatcher will assign your next shipment manifest shortly.
+            You are currently online. When dispatch assigns an order to your vehicle, the milestone instructions will appear here instantly.
           </p>
         </div>
       )}
 
-      {/* Driver Past Trip History */}
-      <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-xs space-y-3">
-        <h4 className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-          <Clock className="w-3.5 h-3.5 text-slate-400" />
-          <span>Recent deliveries ({history.length})</span>
-        </h4>
+      {/* Completed Trip History */}
+      <div className="p-5 bg-white border border-slate-200 rounded-lg shadow-2xs space-y-3">
+        <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">
+          Your Recent Completed Trips ({history.length})
+        </h3>
 
-        <div className="divide-y divide-slate-100 text-xs">
+        <div className="divide-y divide-slate-100">
           {history.length === 0 ? (
-            <p className="py-4 text-center text-slate-400 text-xs">No past trip records found</p>
+            <p className="text-xs text-slate-400 py-4 text-center">No past completed trips on record.</p>
           ) : (
-            history.slice(0, 5).map((d) => (
-              <div key={d.id} className="py-2.5 flex items-center justify-between first:pt-0 last:pb-0">
+            history.slice(0, 5).map((h) => (
+              <div key={h.id} className="py-2.5 flex items-center justify-between text-xs">
                 <div>
-                  <span className="font-medium text-slate-900 block">{d.trackingNumber}</span>
-                  <span className="text-[11px] text-slate-500 truncate block max-w-xs">{d.order?.deliveryAddress}</span>
+                  <span className="font-mono font-bold text-slate-900 block">{h.trackingNumber}</span>
+                  <span className="text-slate-500 text-[11px] truncate max-w-xs block">
+                    {h.order?.customerName} &bull; {h.order?.deliveryAddress}
+                  </span>
                 </div>
-                <div className="text-right">
-                  <StatusBadge status={d.status} type="delivery" size="sm" />
-                  <span className="text-[11px] text-slate-400 block mt-0.5">{d.routeDistanceKm} km</span>
+                <div className="text-right text-[11px]">
+                  <StatusBadge status={h.status} type="delivery" />
+                  <span className="text-slate-400 block mt-1 font-mono">
+                    {new Date(h.updatedAt || h.createdAt || Date.now()).toLocaleDateString('en-IN')}
+                  </span>
                 </div>
               </div>
             ))
@@ -317,59 +328,59 @@ export const DriverConsole: React.FC = () => {
         </div>
       </div>
 
-      {/* Proof of Delivery (POD) Signature Modal */}
+      {/* Digital POD Signature Modal */}
       <Modal
         isOpen={isSignModalOpen}
         onClose={() => setIsSignModalOpen(false)}
-        title="Confirm Proof of Delivery (POD)"
-        subtitle={`Tracking #${activeDelivery?.trackingNumber || ''}`}
-        maxWidth="md"
+        title="Capture Digital Proof of Delivery (POD)"
       >
         <form onSubmit={handleCompleteDeliveryWithSignature} className="space-y-4 text-xs">
+          <div className="p-3 bg-emerald-50/60 border border-emerald-200 rounded-lg space-y-1">
+            <span className="text-xs font-bold text-emerald-900 block">Final Delivery Verification</span>
+            <p className="text-slate-600 text-[11px]">
+              Please collect recipient full name and digital confirmation before releasing cargo.
+            </p>
+          </div>
+
           <div>
-            <label className="text-slate-700 font-semibold block mb-1">
-              Recipient name / Authorized signer <span className="text-red-500">*</span>
+            <label className="block text-slate-700 font-medium mb-1">
+              Recipient Name & Role <span className="text-rose-500">*</span>
             </label>
             <input
-              required
               type="text"
-              placeholder="e.g. Ramesh Kumar (Store Manager)"
+              required
               value={recipientName}
               onChange={(e) => setRecipientName(e.target.value)}
-              className="w-full p-2 bg-white border border-slate-300 rounded-md text-xs text-slate-900 focus:outline-none focus:border-slate-500"
+              placeholder="e.g., S. Deshmukh (Receiving Plant Manager)"
+              className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-xs font-mono"
             />
           </div>
 
           <div>
-            <label className="text-slate-700 font-semibold block mb-1">Delivery notes (Optional)</label>
+            <label className="block text-slate-700 font-medium mb-1">Delivery Condition Notes</label>
             <textarea
               rows={2}
-              placeholder="Cargo received in good condition, seal intact..."
               value={deliveryNotes}
               onChange={(e) => setDeliveryNotes(e.target.value)}
-              className="w-full p-2 bg-white border border-slate-300 rounded-md text-xs text-slate-900 focus:outline-none focus:border-slate-500"
-            />
-          </div>
-
-          <div className="p-3 bg-slate-50 border border-slate-200 rounded-md text-[11px] text-slate-600 flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 shrink-0 text-slate-500" />
-            <span>Digital POD timestamp and receiver confirmation will be saved.</span>
+              placeholder="e.g., Cargo inspected, zero seal tampering, verified in full..."
+              className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-xs"
+            ></textarea>
           </div>
 
           <div className="flex justify-end gap-2 pt-3 border-t border-slate-200">
             <button
               type="button"
               onClick={() => setIsSignModalOpen(false)}
-              className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 rounded-md"
+              className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 rounded-md font-medium"
             >
               Cancel
             </button>
             <button
               type="submit"
-              disabled={!recipientName.trim()}
-              className="px-3.5 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white font-medium rounded-md shadow-xs disabled:opacity-40"
+              disabled={isUpdating || !recipientName.trim()}
+              className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md font-semibold shadow-2xs disabled:opacity-50"
             >
-              Confirm delivery
+              {isUpdating ? 'Recording...' : 'Confirm Delivery & Sign POD'}
             </button>
           </div>
         </form>

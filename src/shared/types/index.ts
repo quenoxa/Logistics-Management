@@ -11,7 +11,7 @@ export interface User {
 }
 
 export type VehicleStatus = 'ACTIVE' | 'IN_TRANSIT' | 'MAINTENANCE' | 'IDLE' | 'OUT_OF_SERVICE';
-export type VehicleType = 'BOX_TRUCK' | 'SPRINTER_VAN' | 'SEMI_TRAILER' | 'EV_VAN' | 'REEFER_TRUCK';
+export type VehicleType = 'BOX_TRUCK' | 'SPRINTER_VAN' | 'SEMI_TRAILER' | 'EV_VAN' | 'REEFER_TRUCK' | 'MEDIUM_DUTY' | 'LIGHT_COMMERCIAL' | 'REEFER';
 
 export interface MaintenanceLog {
   id: string;
@@ -20,8 +20,9 @@ export interface MaintenanceLog {
   description: string;
   cost: number;
   odometerKm: number;
-  serviceDate: string;
-  performedBy: string;
+  serviceDate?: string;
+  performedBy?: string;
+  performedAt?: string;
   status: 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
   createdAt: string;
 }
@@ -34,11 +35,11 @@ export interface Vehicle {
   model: string;
   year: number;
   licensePlate: string;
-  type: VehicleType;
-  status: VehicleStatus;
+  type: VehicleType | string;
+  status: VehicleStatus | string;
   maxPayloadKg: number;
   maxVolumeM3: number;
-  fuelType: 'DIESEL' | 'ELECTRIC' | 'GASOLINE' | 'HYBRID';
+  fuelType: 'DIESEL' | 'ELECTRIC' | 'GASOLINE' | 'HYBRID' | string;
   currentFuelPercent: number;
   currentMileageKm: number;
   currentLat?: number;
@@ -48,7 +49,8 @@ export interface Vehicle {
   assignedDriverId?: string | null;
   assignedDriver?: {
     id: string;
-    code: string;
+    code?: string;
+    driverCode?: string;
     firstName: string;
     lastName: string;
     phone: string;
@@ -62,22 +64,23 @@ export interface Vehicle {
   notes?: string;
 }
 
-export type DriverStatus = 'AVAILABLE' | 'ON_DELIVERY' | 'OFF_DUTY' | 'ON_LEAVE';
+export type DriverStatus = 'AVAILABLE' | 'ON_DELIVERY' | 'OFF_DUTY' | 'ON_LEAVE' | 'SUSPENDED';
 
 export interface Driver {
   id: string;
-  code: string;
+  code?: string;
+  driverCode?: string;
   firstName: string;
   lastName: string;
   email: string;
   phone: string;
   licenseNumber: string;
-  licenseClass: 'CDL_A' | 'CDL_B' | 'STANDARD' | 'HAZMAT_CERTIFIED';
+  licenseClass: 'CDL_A' | 'CDL_B' | 'CDL_C' | 'STANDARD' | 'HAZMAT_CERTIFIED' | 'LMV' | string;
   licenseExpiry: string;
-  status: DriverStatus;
+  status: DriverStatus | string;
   rating: number;
   totalDeliveries: number;
-  onTimeRatePercent: number;
+  onTimeRatePercent?: number;
   emergencyContact?: string;
   currentVehicle?: {
     id: string;
@@ -92,8 +95,8 @@ export interface Driver {
   };
 }
 
-export type CargoType = 'GENERAL_FREIGHT' | 'PERISHABLE' | 'HAZMAT' | 'FRAGILE' | 'COLD_CHAIN' | 'HIGH_VALUE';
-export type PriorityLevel = 'LOW' | 'STANDARD' | 'HIGH' | 'URGENT';
+export type CargoType = 'GENERAL_FREIGHT' | 'PERISHABLE' | 'HAZMAT' | 'FRAGILE' | 'COLD_CHAIN' | 'HIGH_VALUE' | 'BULK_LIQUID';
+export type PriorityLevel = 'LOW' | 'STANDARD' | 'HIGH' | 'URGENT' | 'CRITICAL' | 'MEDIUM';
 export type OrderStatus = 'PENDING' | 'ASSIGNED' | 'IN_TRANSIT' | 'DELIVERED' | 'CANCELLED';
 
 export interface Order {
@@ -104,16 +107,16 @@ export interface Order {
   customerPhone: string;
   customerAddress: string;
   pickupAddress: string;
-  pickupLat: number;
-  pickupLng: number;
+  pickupLat?: number;
+  pickupLng?: number;
   deliveryAddress: string;
-  deliveryLat: number;
-  deliveryLng: number;
+  deliveryLat?: number;
+  deliveryLng?: number;
   weightKg: number;
   volumeM3: number;
-  cargoType: CargoType;
-  priority: PriorityLevel;
-  status: OrderStatus;
+  cargoType: CargoType | string;
+  priority: PriorityLevel | string;
+  status: OrderStatus | string;
   deliveryFee: number;
   notes?: string;
   createdAt: string;
@@ -121,7 +124,7 @@ export interface Order {
     id: string;
     trackingNumber: string;
     status: string;
-    driver?: { id: string; code: string; firstName: string; lastName: string };
+    driver?: { id: string; code?: string; driverCode?: string; firstName: string; lastName: string };
     vehicle?: { id: string; code: string; licensePlate: string };
   };
 }
@@ -139,41 +142,47 @@ export type DeliveryStatus =
 
 export interface DeliveryTimelineEvent {
   id: string;
-  deliveryId: string;
+  deliveryId?: string;
   status: string;
-  title: string;
-  description: string;
+  title?: string;
+  description?: string;
+  notes?: string;
   locationName?: string;
   lat?: number;
   lng?: number;
-  recordedAt: string;
+  recordedAt?: string;
   recordedBy?: string;
+  timestamp?: string;
+  createdBy?: string;
 }
 
 export interface Delivery {
   id: string;
   trackingNumber: string;
   orderId: string;
-  driverId: string;
-  vehicleId: string;
-  status: DeliveryStatus;
-  priority: PriorityLevel;
-  pickupScheduledAt: string;
+  driverId?: string;
+  vehicleId?: string;
+  status: DeliveryStatus | string;
+  priority?: PriorityLevel | string;
+  pickupScheduledAt?: string;
   pickupActualAt?: string;
-  deliveryEstimatedAt: string;
+  deliveryEstimatedAt?: string;
   deliveryActualAt?: string;
+  actualDeliveryTime?: string;
   currentLat?: number;
   currentLng?: number;
   progressPercent: number;
   routeDistanceKm: number;
-  routeDurationMin: number;
+  routeDurationMin?: number;
   recipientSignature?: string;
   delayReason?: string;
   notes?: string;
   createdAt: string;
+  updatedAt?: string;
   order: Order;
   driver: Driver;
   vehicle: Vehicle;
+  timeline?: DeliveryTimelineEvent[];
   timelineEvents?: DeliveryTimelineEvent[];
   telemetry?: {
     speedKmH: number;
@@ -207,19 +216,22 @@ export interface DashboardKPIs {
   };
   onTimeRatePercent: number;
   totalDistanceKm: number;
-  totalRevenueUsd: number;
+  totalRevenueUsd?: number;
+  revenueTotal?: number;
 }
 
 export interface AuditLog {
   id: string;
   userId?: string;
-  userName: string;
+  userName?: string;
   action: string;
-  entityType: string;
+  entity?: string;
+  entityType?: string;
   entityId?: string;
   details?: string;
   ipAddress?: string;
-  createdAt: string;
+  createdAt?: string;
+  timestamp?: string;
   user?: {
     id: string;
     email: string;

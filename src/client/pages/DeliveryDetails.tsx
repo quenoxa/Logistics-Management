@@ -7,18 +7,26 @@ import {
   Clock,
   Package,
   CheckCircle2,
-  PenTool,
+  AlertCircle,
   Navigation,
+  FileText,
+  User,
+  ShieldCheck,
+  Calendar,
+  PenTool,
 } from 'lucide-react';
-import { deliveriesApi } from '../api/client';
-import { Delivery } from '../types';
+import { deliveriesApi } from '../services/api';
+import { Delivery } from '../../shared/types';
 import { StatusBadge } from '../components/common/StatusBadge';
 import { Modal } from '../components/common/Modal';
 import { DeliveryMap } from '../components/map/DeliveryMap';
+import { Skeleton } from '../components/ui/Skeleton';
+import { useToast } from '../context/ToastContext';
 
 export const DeliveryDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { success, error } = useToast();
   const [delivery, setDelivery] = useState<Delivery | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isTransitionOpen, setIsTransitionOpen] = useState(false);
@@ -36,8 +44,9 @@ export const DeliveryDetails: React.FC = () => {
       setIsLoading(true);
       const data = await deliveriesApi.getById(id);
       setDelivery(data);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to load delivery details:', err);
+      error('Error', err.response?.data?.error || 'Failed to load delivery details.');
     } finally {
       setIsLoading(false);
     }
@@ -47,20 +56,9 @@ export const DeliveryDetails: React.FC = () => {
     fetchDetails();
   }, [id]);
 
-  if (isLoading || !delivery) {
-    return (
-      <div className="py-20 text-center text-slate-500 text-xs">
-        <div className="inline-flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-slate-400 animate-pulse"></span>
-          <span>Loading delivery details...</span>
-        </div>
-      </div>
-    );
-  }
-
   const handleStatusTransition = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nextStatus) return;
+    if (!delivery || !nextStatus) return;
 
     try {
       setIsSubmitting(true);
@@ -69,19 +67,45 @@ export const DeliveryDetails: React.FC = () => {
         notes: transitionNotes,
         recipientSignature: nextStatus === 'DELIVERED' ? recipientSignature : undefined,
         delayReason: nextStatus === 'DELAYED' ? delayReason : undefined,
-        locationName: nextStatus === 'DELIVERED' ? delivery.order.deliveryAddress : 'Corridor checkpoint',
+        locationName: nextStatus === 'DELIVERED' ? delivery.order.deliveryAddress : 'Corridor Checkpoint',
       });
+      success('Status Updated', `Delivery advanced to ${nextStatus.replace(/_/g, ' ')}.`);
       setIsTransitionOpen(false);
       setTransitionNotes('');
       setRecipientSignature('');
       setDelayReason('');
       await fetchDetails();
     } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to advance status transition');
+      console.error('Transition error:', err);
+      error('Transition Failed', err.response?.data?.error || 'Failed to advance delivery stage.');
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  if (isLoading || !delivery) {
+    return (
+      <div className="space-y-6 pb-12">
+        <div className="flex items-center space-x-3 pb-4 border-b border-slate-200">
+          <Skeleton className="w-8 h-8 rounded-md" />
+          <div className="space-y-1">
+            <Skeleton className="w-48 h-6" />
+            <Skeleton className="w-32 h-4" />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="space-y-4">
+            <Skeleton className="h-64 w-full rounded-lg" />
+            <Skeleton className="h-48 w-full rounded-lg" />
+          </div>
+          <div className="lg:col-span-2 space-y-4">
+            <Skeleton className="h-80 w-full rounded-lg" />
+            <Skeleton className="h-48 w-full rounded-lg" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const steps = [
     { key: 'PENDING', label: 'Order Registered' },
@@ -112,313 +136,332 @@ export const DeliveryDetails: React.FC = () => {
         <div className="flex items-center space-x-3">
           <button
             onClick={() => navigate('/deliveries')}
-            className="p-1.5 rounded-md border border-slate-300 bg-white hover:bg-slate-50 text-slate-600 transition-colors"
+            className="p-1.5 rounded-md border border-slate-300 bg-white hover:bg-slate-50 text-slate-600 shadow-2xs transition-colors"
+            title="Back to Deliveries"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div>
             <div className="flex items-center space-x-2.5">
-              <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-                Delivery {delivery.trackingNumber}
+              <h1 className="text-xl font-bold text-slate-900 tracking-tight font-mono">
+                {delivery.trackingNumber}
               </h1>
               <StatusBadge status={delivery.status} type="delivery" />
-              <StatusBadge status={delivery.priority} type="priority" />
+              <StatusBadge status={delivery.order?.priority || 'MEDIUM'} type="priority" />
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
-              Order #{delivery.order.orderNumber} &bull; Created {new Date(delivery.createdAt).toLocaleString()}
+              Order #{delivery.order?.orderNumber} &bull; Created {new Date(delivery.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
             </p>
           </div>
         </div>
 
         <div className="flex items-center space-x-2.5">
-          <button
-            onClick={() => navigate('/tracking')}
-            className="px-3 py-1.5 rounded-md bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-xs font-medium flex items-center gap-1.5 transition-colors"
-          >
-            <Navigation className="w-3.5 h-3.5" />
-            <span>View on live map</span>
-          </button>
-
-          {delivery.status !== 'DELIVERED' && delivery.status !== 'CANCELLED' && (
+          {delivery.status !== 'DELIVERED' && (
             <button
-              onClick={() => setIsTransitionOpen(true)}
-              className="px-3 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium flex items-center gap-1.5 transition-colors"
+              onClick={() => {
+                setNextStatus(
+                  delivery.status === 'DISPATCHED'
+                    ? 'PICKED_UP'
+                    : delivery.status === 'PICKED_UP'
+                    ? 'IN_TRANSIT'
+                    : delivery.status === 'IN_TRANSIT'
+                    ? 'OUT_FOR_DELIVERY'
+                    : 'DELIVERED'
+                );
+                setIsTransitionOpen(true);
+              }}
+              className="px-3.5 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-colors"
             >
-              <PenTool className="w-3.5 h-3.5" />
-              <span>Update status</span>
+              <CheckCircle2 className="w-4 h-4" />
+              <span>Advance Milestone</span>
             </button>
           )}
         </div>
       </div>
 
-      {/* State Machine Step Visualizer */}
-      <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-xs">
-        <h3 className="text-xs font-semibold text-slate-700 mb-3">
-          Delivery progress
-        </h3>
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+      {/* 6-Stage Progress Stepper */}
+      <div className="p-4 bg-white border border-slate-200 rounded-lg shadow-2xs">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
           {steps.map((step, idx) => {
             const isCompleted = idx <= currentStatusIndex;
             const isCurrent = idx === currentStatusIndex;
             return (
-              <div
-                key={step.key}
-                className={`p-2.5 rounded-md border text-xs transition-colors ${
-                  isCurrent
-                    ? 'bg-slate-900 border-slate-900 text-white font-medium'
-                    : isCompleted
-                    ? 'bg-emerald-50 border-emerald-200 text-emerald-800 font-medium'
-                    : 'bg-slate-50 border-slate-200 text-slate-400'
-                }`}
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[10px] opacity-75">0{idx + 1}</span>
-                  {isCompleted ? (
-                    <CheckCircle2 className={`w-3.5 h-3.5 ${isCurrent ? 'text-white' : 'text-emerald-600'}`} />
-                  ) : (
-                    <Clock className="w-3.5 h-3.5 opacity-40" />
-                  )}
+              <div key={step.key} className="flex flex-col items-center text-center p-2 rounded-md">
+                <div
+                  className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold mb-1.5 transition-colors ${
+                    isCompleted
+                      ? 'bg-emerald-600 text-white shadow-2xs'
+                      : 'bg-slate-100 text-slate-400 border border-slate-200'
+                  }`}
+                >
+                  {isCompleted ? '✓' : idx + 1}
                 </div>
-                <div className="text-[11px] leading-tight">{step.label}</div>
+                <span
+                  className={`text-xs font-medium ${
+                    isCurrent
+                      ? 'text-slate-900 font-bold'
+                      : isCompleted
+                      ? 'text-slate-700'
+                      : 'text-slate-400'
+                  }`}
+                >
+                  {step.label}
+                </span>
               </div>
             );
           })}
         </div>
       </div>
 
-      {/* 2-Column Info Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Left Column: Manifest & Assigned Personnel */}
+      {/* Two Column Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column: Shipment & Asset Specs */}
         <div className="space-y-5">
-          {/* Customer & Cargo Card */}
-          <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-xs space-y-3">
-            <h3 className="text-xs font-semibold text-slate-800 flex items-center gap-1.5 border-b border-slate-200 pb-2.5">
-              <Package className="w-4 h-4 text-slate-500" />
-              <span>Shipment & cargo details</span>
-            </h3>
-
-            <div className="space-y-2 text-xs">
-              <div className="flex justify-between border-b border-slate-100 pb-1.5">
-                <span className="text-slate-500">Customer:</span>
-                <span className="text-slate-900 font-medium">{delivery.order.customerName}</span>
-              </div>
-              <div className="flex justify-between border-b border-slate-100 pb-1.5">
-                <span className="text-slate-500">Cargo type:</span>
-                <StatusBadge status={delivery.order.cargoType} type="cargo" />
-              </div>
-              <div className="flex justify-between border-b border-slate-100 pb-1.5">
-                <span className="text-slate-500">Total weight:</span>
-                <span className="text-slate-900 font-medium">{delivery.order.weightKg.toLocaleString()} kg</span>
-              </div>
-              <div className="flex justify-between border-b border-slate-100 pb-1.5">
-                <span className="text-slate-500">Volume:</span>
-                <span className="text-slate-700">{delivery.order.volumeM3} m³</span>
-              </div>
-              <div className="flex justify-between border-b border-slate-100 pb-1.5">
-                <span className="text-slate-500">Distance / Est. time:</span>
-                <span className="text-slate-900 font-medium">{delivery.routeDistanceKm} km ({delivery.routeDurationMin} min)</span>
-              </div>
-              <div>
-                <span className="text-slate-500 font-medium block mb-1">Destination:</span>
-                <div className="p-2.5 rounded bg-slate-50 border border-slate-200 text-slate-800 flex items-start gap-1.5 text-xs">
-                  <MapPin className="w-3.5 h-3.5 text-slate-500 shrink-0 mt-0.5" />
-                  <span>{delivery.order.deliveryAddress}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Assigned Driver & Vehicle Card */}
-          <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-xs space-y-3">
-            <h3 className="text-xs font-semibold text-slate-800 flex items-center gap-1.5 border-b border-slate-200 pb-2.5">
-              <Truck className="w-4 h-4 text-slate-500" />
-              <span>Assigned vehicle & driver</span>
+          {/* Customer & Route Card */}
+          <div className="p-4 bg-white border border-slate-200 rounded-lg shadow-2xs space-y-3.5">
+            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-100 pb-2">
+              <Package className="w-3.5 h-3.5 text-slate-500" />
+              <span>Customer & Manifest</span>
             </h3>
 
             <div className="space-y-2.5 text-xs">
-              <div className="p-2.5 rounded bg-slate-50 border border-slate-200 space-y-1">
-                <div className="flex items-center justify-between text-[11px]">
-                  <span className="text-slate-500">Driver</span>
-                  <span className="font-medium text-slate-700">{delivery.driver.code}</span>
-                </div>
-                <div className="text-slate-900 font-medium">
-                  {delivery.driver.firstName} {delivery.driver.lastName}
-                </div>
-                <div className="text-[11px] text-slate-500">
-                  {delivery.driver.phone} &bull; {delivery.driver.licenseClass}
-                </div>
+              <div>
+                <span className="text-[11px] text-slate-400 font-medium block">Customer</span>
+                <span className="font-semibold text-slate-800">{delivery.order?.customerName}</span>
+                <span className="text-slate-500 text-[11px] block">{delivery.order?.customerPhone}</span>
               </div>
 
-              <div className="p-2.5 rounded bg-slate-50 border border-slate-200 space-y-1">
-                <div className="flex items-center justify-between text-[11px]">
-                  <span className="text-slate-500">Vehicle</span>
-                  <span className="font-medium text-slate-700">{delivery.vehicle.code}</span>
+              <div>
+                <span className="text-[11px] text-slate-400 font-medium block">Origin Facility</span>
+                <span className="text-slate-700 font-medium flex items-start gap-1 mt-0.5">
+                  <MapPin className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
+                  <span>{delivery.order?.pickupAddress}</span>
+                </span>
+              </div>
+
+              <div>
+                <span className="text-[11px] text-slate-400 font-medium block">Destination</span>
+                <span className="text-slate-700 font-medium flex items-start gap-1 mt-0.5">
+                  <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                  <span>{delivery.order?.deliveryAddress}</span>
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 text-xs">
+                <div>
+                  <span className="text-[11px] text-slate-400 font-medium block">Cargo Weight</span>
+                  <span className="font-semibold text-slate-800">{delivery.order?.weightKg.toLocaleString()} kg</span>
                 </div>
-                <div className="text-slate-900 font-medium">
-                  {delivery.vehicle.make} {delivery.vehicle.model}
-                </div>
-                <div className="text-[11px] text-slate-500">
-                  Plate: {delivery.vehicle.licensePlate} &bull; Fuel: {delivery.vehicle.currentFuelPercent}%
+                <div>
+                  <span className="text-[11px] text-slate-400 font-medium block">Volume</span>
+                  <span className="font-semibold text-slate-800">{delivery.order?.volumeM3} m³</span>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Right Column: Route Map & Step Timeline Logs */}
-        <div className="lg:col-span-2 space-y-5">
-          {/* Route Map */}
-          <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-xs space-y-2.5">
-            <h3 className="text-xs font-semibold text-slate-800 flex items-center gap-1.5">
-              <Navigation className="w-4 h-4 text-slate-500" />
-              <span>Route map</span>
+          {/* Assigned Fleet Assets */}
+          <div className="p-4 bg-white border border-slate-200 rounded-lg shadow-2xs space-y-3.5">
+            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-100 pb-2">
+              <Truck className="w-3.5 h-3.5 text-slate-500" />
+              <span>Assigned Fleet Assets</span>
             </h3>
 
+            <div className="space-y-3 text-xs">
+              {/* Driver Card */}
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg flex items-center space-x-3">
+                <div className="w-8 h-8 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-xs">
+                  {delivery.driver ? `${delivery.driver.firstName[0]}${delivery.driver.lastName[0]}` : 'U'}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="font-semibold text-slate-900 block truncate">
+                    {delivery.driver ? `${delivery.driver.firstName} ${delivery.driver.lastName}` : 'Unassigned Driver'}
+                  </span>
+                  <span className="text-[11px] text-slate-500 font-mono">
+                    {delivery.driver?.driverCode} &bull; {delivery.driver?.phone}
+                  </span>
+                </div>
+              </div>
+
+              {/* Vehicle Card */}
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg flex items-center space-x-3">
+                <div className="w-8 h-8 rounded-md bg-orange-100 text-orange-700 flex items-center justify-center font-bold text-xs">
+                  <Truck className="w-4 h-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="font-semibold text-slate-900 block truncate">
+                    {delivery.vehicle?.model || 'Commercial Carrier'}
+                  </span>
+                  <span className="text-[11px] text-slate-500 font-mono">
+                    {delivery.vehicle?.code} &bull; {delivery.vehicle?.licensePlate}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Proof of Delivery Card (If Delivered) */}
+          {delivery.status === 'DELIVERED' && (
+            <div className="p-4 bg-emerald-50/50 border border-emerald-200 rounded-lg shadow-2xs space-y-2 text-xs">
+              <h3 className="text-xs font-bold text-emerald-900 uppercase tracking-wider flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                <span>Verified Proof of Delivery (POD)</span>
+              </h3>
+              <p className="text-slate-600 text-[11px]">
+                Delivered on{' '}
+                {delivery.actualDeliveryTime
+                  ? new Date(delivery.actualDeliveryTime).toLocaleString('en-IN')
+                  : 'Milestone verified'}
+              </p>
+              {delivery.recipientSignature && (
+                <div className="p-2.5 bg-white border border-emerald-200 rounded text-xs font-mono text-slate-800">
+                  <span className="text-[10px] text-slate-400 block">Digital Signature:</span>
+                  <span className="font-semibold">{delivery.recipientSignature}</span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Right Column: Interactive Map & Audit Timeline */}
+        <div className="lg:col-span-2 space-y-5">
+          {/* Corridor Map */}
+          <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-2xs space-y-3">
+            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+              Corridor Telematics Radar
+            </h3>
             <DeliveryMap
-              origin={{
-                lat: delivery.order.pickupLat,
-                lng: delivery.order.pickupLng,
-                label: `Pickup: ${delivery.order.pickupAddress}`,
-              }}
-              destination={{
-                lat: delivery.order.deliveryLat,
-                lng: delivery.order.deliveryLng,
-                label: `Delivery: ${delivery.order.deliveryAddress}`,
-              }}
-              currentPosition={
-                delivery.currentLat && delivery.currentLng
-                  ? { lat: delivery.currentLat, lng: delivery.currentLng }
-                  : undefined
-              }
+              vehicles={[
+                {
+                  id: delivery.id,
+                  code: delivery.vehicle?.code || 'VEH',
+                  lat: delivery.currentLat || 19.076,
+                  lng: delivery.currentLng || 72.8777,
+                  status: delivery.status,
+                  trackingNumber: delivery.trackingNumber,
+                  speed: delivery.status === 'IN_TRANSIT' ? 62 : 0,
+                },
+              ]}
               height="280px"
             />
           </div>
 
-          {/* Timestamped Timeline History */}
-          <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-xs space-y-3">
-            <h3 className="text-xs font-semibold text-slate-800 flex items-center gap-1.5 border-b border-slate-200 pb-2.5">
-              <Clock className="w-4 h-4 text-slate-500" />
-              <span>Audit timeline & status history</span>
+          {/* Chronological Audit Timeline */}
+          <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-2xs space-y-3">
+            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">
+              Milestone Audit Stream ({delivery.timeline?.length || 0} Events)
             </h3>
 
-            <div className="space-y-3.5 text-xs">
-              {delivery.timelineEvents && delivery.timelineEvents.length > 0 ? (
-                delivery.timelineEvents.map((evt) => (
-                  <div key={evt.id} className="relative pl-5 pb-3 border-l-2 border-slate-200 last:border-l-0 last:pb-0">
-                    <span className="absolute -left-[5px] top-1 w-2 h-2 rounded-full bg-slate-700"></span>
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="font-medium text-slate-900">{evt.title}</div>
-                      <span className="text-[11px] text-slate-400">{new Date(evt.recordedAt).toLocaleString()}</span>
+            <div className="relative pl-6 space-y-4 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
+              {delivery.timeline && delivery.timeline.length > 0 ? (
+                delivery.timeline.map((evt, idx) => (
+                  <div key={evt.id || idx} className="relative">
+                    {/* Event Dot */}
+                    <div className="absolute -left-6 top-0.5 w-4 h-4 rounded-full bg-white border-2 border-emerald-600 flex items-center justify-center">
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-600"></div>
                     </div>
-                    <p className="text-slate-600 text-xs mt-0.5">{evt.description}</p>
-                    <div className="mt-1 text-[11px] text-slate-400 flex items-center gap-3">
-                      {evt.locationName && <span>Location: {evt.locationName}</span>}
-                      {evt.recordedBy && <span>By: {evt.recordedBy}</span>}
+
+                    <div className="text-xs">
+                      <div className="flex flex-wrap items-center justify-between gap-1">
+                        <span className="font-semibold text-slate-900">
+                          {evt.status.replace(/_/g, ' ')}
+                        </span>
+                        <span className="text-[11px] text-slate-400 font-mono">
+                          {new Date(evt.timestamp || evt.recordedAt || Date.now()).toLocaleString('en-IN')}
+                        </span>
+                      </div>
+                      <p className="text-slate-600 text-xs mt-0.5">{evt.notes || 'Status confirmed'}</p>
+                      <div className="flex items-center gap-3 text-[11px] text-slate-400 mt-1">
+                        <span>Author: {evt.createdBy || 'System'}</span>
+                        {evt.locationName && <span>Location: {evt.locationName}</span>}
+                      </div>
                     </div>
                   </div>
                 ))
               ) : (
-                <p className="text-slate-400 text-center py-4">No timeline events recorded yet</p>
+                <p className="text-xs text-slate-400 py-4">No timeline events recorded yet.</p>
               )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* State Transition Modal */}
+      {/* Advance Status Modal */}
       <Modal
         isOpen={isTransitionOpen}
         onClose={() => setIsTransitionOpen(false)}
-        title={`Update status: ${delivery.trackingNumber}`}
-        subtitle={`Current Status: ${delivery.status}`}
-        maxWidth="lg"
+        title="Advance Delivery Milestone"
       >
         <form onSubmit={handleStatusTransition} className="space-y-4 text-xs">
           <div>
-            <label className="text-slate-700 font-semibold block mb-1">Target next status</label>
+            <label className="block text-slate-700 font-medium mb-1">Target Status</label>
             <select
               value={nextStatus}
               onChange={(e) => setNextStatus(e.target.value)}
-              required
-              className="w-full p-2 bg-white border border-slate-300 rounded-md text-xs text-slate-900 focus:outline-none focus:border-slate-500"
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-md text-xs font-medium text-slate-900"
             >
-              <option value="">Select Next Status...</option>
-              {delivery.status === 'DISPATCHED' && <option value="PICKED_UP">PICKED_UP - Cargo Loaded</option>}
-              {delivery.status === 'PICKED_UP' && <option value="IN_TRANSIT">IN_TRANSIT - Departed on Route</option>}
-              {delivery.status === 'IN_TRANSIT' && (
-                <>
-                  <option value="OUT_FOR_DELIVERY">OUT_FOR_DELIVERY - Approaching Destination</option>
-                  <option value="DELAYED">DELAYED - Traffic / Issue Flagged</option>
-                </>
-              )}
-              {delivery.status === 'DELAYED' && <option value="IN_TRANSIT">IN_TRANSIT - Resume Route</option>}
-              {delivery.status === 'OUT_FOR_DELIVERY' && <option value="DELIVERED">DELIVERED - Confirmed POD</option>}
-              <option value="CANCELLED">CANCELLED - Abort Dispatch</option>
+              <option value="PICKED_UP">PICKED_UP (Cargo Loaded)</option>
+              <option value="IN_TRANSIT">IN_TRANSIT (On Corridor)</option>
+              <option value="OUT_FOR_DELIVERY">OUT_FOR_DELIVERY (Final Mile)</option>
+              <option value="DELIVERED">DELIVERED (Final Receipt)</option>
+              <option value="DELAYED">DELAYED (Hold / Traffic)</option>
             </select>
+          </div>
+
+          <div>
+            <label className="block text-slate-700 font-medium mb-1">Author Notes</label>
+            <textarea
+              rows={2}
+              value={transitionNotes}
+              onChange={(e) => setTransitionNotes(e.target.value)}
+              placeholder="e.g., Cargo verified and signed at pickup depot..."
+              className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-xs"
+            ></textarea>
           </div>
 
           {nextStatus === 'DELIVERED' && (
             <div>
-              <label className="text-slate-700 font-semibold block mb-1">
-                Recipient signature / Name <span className="text-red-500">*</span>
+              <label className="block text-slate-700 font-medium mb-1">
+                Recipient Digital Signature / Confirmation <span className="text-rose-500">*</span>
               </label>
               <input
-                required
                 type="text"
-                placeholder="e.g. Ramesh Kumar (Store Manager)"
+                required
                 value={recipientSignature}
                 onChange={(e) => setRecipientSignature(e.target.value)}
-                className="w-full p-2 bg-white border border-slate-300 rounded-md text-xs text-slate-900 focus:outline-none focus:border-slate-500"
+                placeholder="e.g., Signed by: R. Sharma (Receiving Plant Manager)"
+                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-xs font-mono"
               />
             </div>
           )}
 
           {nextStatus === 'DELAYED' && (
             <div>
-              <label className="text-slate-700 font-semibold block mb-1">
-                Reason for delay <span className="text-red-500">*</span>
-              </label>
-              <select
-                required
+              <label className="block text-slate-700 font-medium mb-1">Delay Root Cause</label>
+              <input
+                type="text"
                 value={delayReason}
                 onChange={(e) => setDelayReason(e.target.value)}
-                className="w-full p-2 bg-white border border-slate-300 rounded-md text-xs text-slate-900 focus:outline-none focus:border-slate-500"
-              >
-                <option value="">Select Reason...</option>
-                <option value="TRAFFIC_CONGESTION">Traffic / Highway Congestion</option>
-                <option value="WEATHER_CONDITIONS">Heavy Monsoon / Severe Weather</option>
-                <option value="VEHICLE_ISSUE">Mechanical / Tire Pressure Check</option>
-                <option value="DOCK_DELAY">Receiving Bay Congestion</option>
-              </select>
+                placeholder="e.g., Highway toll congestion or weather delay..."
+                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-xs"
+              />
             </div>
           )}
-
-          <div>
-            <label className="text-slate-700 font-semibold block mb-1">Notes & operator comments</label>
-            <textarea
-              rows={3}
-              placeholder="Provide milestone details..."
-              value={transitionNotes}
-              onChange={(e) => setTransitionNotes(e.target.value)}
-              className="w-full p-2 bg-white border border-slate-300 rounded-md text-xs text-slate-900 focus:outline-none focus:border-slate-500"
-            />
-          </div>
 
           <div className="flex justify-end gap-2 pt-3 border-t border-slate-200">
             <button
               type="button"
               onClick={() => setIsTransitionOpen(false)}
-              className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 rounded-md"
+              className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 rounded-md font-medium"
             >
               Cancel
             </button>
             <button
               type="submit"
-              disabled={isSubmitting || !nextStatus}
-              className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-md shadow-xs disabled:opacity-40"
+              disabled={isSubmitting}
+              className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-md font-medium shadow-2xs disabled:opacity-50"
             >
-              {isSubmitting ? 'Updating...' : 'Confirm status change'}
+              {isSubmitting ? 'Recording...' : 'Confirm Milestone'}
             </button>
           </div>
         </form>

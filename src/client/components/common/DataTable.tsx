@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { Search, ChevronUp, ChevronDown, ChevronsUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, ChevronUp, ChevronDown, ChevronsUpDown, ChevronLeft, ChevronRight, Inbox } from 'lucide-react';
+import { Skeleton } from '../ui/Skeleton';
 
 export interface Column<T> {
   header: string;
@@ -84,43 +85,46 @@ export function DataTable<T>({
   };
 
   return (
-    <div className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-xs">
+    <div className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-2xs">
       {/* Controls Bar */}
-      <div className="p-3 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 bg-slate-50/70">
-        <div className="flex items-center gap-2.5 flex-1 min-w-[260px]">
-          {searchFilter && (
-            <div className="relative flex-1 max-w-sm">
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder={searchPlaceholder}
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="w-full pl-8 pr-3 py-1.5 bg-white border border-slate-300 rounded-md text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-500 transition-colors"
-              />
-            </div>
-          )}
-          {filtersSlot}
+      {(searchFilter || filtersSlot || actionsSlot) && (
+        <div className="p-3 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 bg-slate-50/70">
+          <div className="flex items-center gap-2.5 flex-1 min-w-[240px]">
+            {searchFilter && (
+              <div className="relative flex-1 max-w-sm">
+                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder={searchPlaceholder}
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="w-full pl-8.5 pr-3 py-1.5 bg-white border border-slate-200 rounded-md text-xs text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:border-slate-400 focus:ring-1 focus:ring-slate-400 transition-colors"
+                />
+              </div>
+            )}
+            {filtersSlot}
+          </div>
+          {actionsSlot && <div className="flex items-center gap-2">{actionsSlot}</div>}
         </div>
+      )}
 
-        {actionsSlot && <div className="flex items-center gap-2">{actionsSlot}</div>}
-      </div>
-
-      {/* Table Content */}
+      {/* Table Container */}
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="border-b border-slate-200 bg-slate-50 text-xs font-semibold text-slate-600">
+            <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-semibold text-slate-600 uppercase tracking-wider">
               {columns.map((col, idx) => (
                 <th
                   key={idx}
                   onClick={() => handleSort(col)}
-                  className={`py-2.5 px-3.5 select-none ${col.sortable ? 'cursor-pointer hover:text-slate-900' : ''} ${col.className || ''}`}
+                  className={`py-2.5 px-3.5 select-none ${col.sortable ? 'cursor-pointer hover:bg-slate-100/80 transition-colors' : ''} ${
+                    col.className || ''
+                  }`}
                 >
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center space-x-1.5">
                     <span>{col.header}</span>
                     {col.sortable && (
                       <span className="text-slate-400">
@@ -142,18 +146,22 @@ export function DataTable<T>({
           </thead>
           <tbody className="divide-y divide-slate-100 text-xs text-slate-800">
             {isLoading ? (
-              <tr>
-                <td colSpan={columns.length} className="py-12 text-center text-slate-500">
-                  <div className="inline-flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-slate-400 animate-pulse"></span>
-                    Loading records...
-                  </div>
-                </td>
-              </tr>
+              Array.from({ length: Math.min(pageSize, 5) }).map((_, rIdx) => (
+                <tr key={rIdx}>
+                  {columns.map((_, cIdx) => (
+                    <td key={cIdx} className="py-3 px-3.5">
+                      <Skeleton className="h-4 w-3/4" />
+                    </td>
+                  ))}
+                </tr>
+              ))
             ) : paginatedData.length === 0 ? (
               <tr>
                 <td colSpan={columns.length} className="py-12 text-center text-slate-500">
-                  {emptyMessage}
+                  <div className="flex flex-col items-center justify-center space-y-2">
+                    <Inbox className="w-8 h-8 text-slate-300 stroke-[1.5]" />
+                    <p className="text-xs font-medium text-slate-600">{emptyMessage}</p>
+                  </div>
                 </td>
               </tr>
             ) : (
@@ -163,8 +171,8 @@ export function DataTable<T>({
                   onClick={() => onRowClick && onRowClick(row)}
                   className={`transition-colors ${
                     onRowClick
-                      ? 'cursor-pointer hover:bg-slate-50'
-                      : 'hover:bg-slate-50/50'
+                      ? 'cursor-pointer hover:bg-slate-50/80'
+                      : 'hover:bg-slate-50/40'
                   }`}
                 >
                   {columns.map((col, colIdx) => (
@@ -184,31 +192,36 @@ export function DataTable<T>({
       </div>
 
       {/* Pagination Footer */}
-      {totalPages > 1 && (
-        <div className="px-4 py-2.5 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500 bg-slate-50">
+      {!isLoading && sortedData.length > 0 && (
+        <div className="px-4 py-2.5 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 bg-slate-50/60">
           <div>
-            Showing {(currentPage - 1) * pageSize + 1} to{' '}
-            {Math.min(currentPage * pageSize, sortedData.length)} of {sortedData.length} records
+            Showing <span className="font-medium text-slate-700">{(currentPage - 1) * pageSize + 1}</span> to{' '}
+            <span className="font-medium text-slate-700">{Math.min(currentPage * pageSize, sortedData.length)}</span> of{' '}
+            <span className="font-medium text-slate-700">{sortedData.length}</span> records
           </div>
-          <div className="flex items-center space-x-1">
-            <button
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              className="p-1 rounded hover:bg-slate-200 disabled:opacity-30 disabled:hover:bg-transparent"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <span className="px-2 py-0.5 rounded bg-white border border-slate-200 font-medium text-slate-700">
-              {currentPage} / {totalPages}
-            </span>
-            <button
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              className="p-1 rounded hover:bg-slate-200 disabled:opacity-30 disabled:hover:bg-transparent"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
+          {totalPages > 1 && (
+            <div className="flex items-center space-x-1.5">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="p-1 rounded-md hover:bg-slate-200 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+                aria-label="Previous page"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <span className="px-2.5 py-0.5 rounded-md bg-white border border-slate-200 font-medium text-slate-700 shadow-2xs">
+                {currentPage} / {totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="p-1 rounded-md hover:bg-slate-200 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+                aria-label="Next page"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>
