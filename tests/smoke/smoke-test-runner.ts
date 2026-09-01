@@ -1,4 +1,4 @@
-import { prisma } from './prisma';
+import { prisma } from '../../src/server/prisma';
 
 const API_BASE = 'http://localhost:5000/api';
 

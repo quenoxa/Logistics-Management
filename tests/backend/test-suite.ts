@@ -1,7 +1,7 @@
-import { prisma } from './prisma';
+import { prisma } from '../../src/server/prisma';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { config } from './config';
+import { config } from '../../src/server/config';
 
 async function runTests() {
   console.log('🧪 Starting Automated Backend Verification Suite...\n');

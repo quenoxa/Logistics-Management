@@ -22,9 +22,10 @@
 
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/client/*"],
+      "@shared/*": ["src/shared/*"]
     }
   },
-  "include": ["src"],
+  "include": ["src/client/**/*", "src/shared/**/*"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

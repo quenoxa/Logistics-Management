@@ -13,9 +13,9 @@
     "db:push": "prisma db push",
     "db:seed": "ts-node -P tsconfig.server.json prisma/seed.ts",
     "db:generate": "prisma generate",
-    "test:suite": "ts-node -P tsconfig.server.json src/server/test-suite.ts",
-    "test:audit": "ts-node -P tsconfig.server.json src/server/audit-runner.ts",
-    "test:smoke": "ts-node -P tsconfig.server.json src/server/smoke-test-runner.ts"
+    "test:suite": "ts-node -P tsconfig.server.json tests/backend/test-suite.ts",
+    "test:audit": "ts-node -P tsconfig.server.json tests/integration/audit-runner.ts",
+    "test:smoke": "ts-node -P tsconfig.server.json tests/smoke/smoke-test-runner.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
