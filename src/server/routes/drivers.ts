@@ -238,7 +238,7 @@ router.patch('/:id/status', authenticateToken, async (req: AuthenticatedRequest,
     const { id } = req.params;
     const { status } = req.body;
 
-    if (!['AVAILABLE', 'ON_DELIVERY', 'OFF_DUTY', 'ON_LEAVE'].includes(status)) {
+    if (!['AVAILABLE', 'ON_DELIVERY', 'OFF_DUTY', 'ON_LEAVE', 'SUSPENDED'].includes(status)) {
       res.status(400).json({ error: 'Invalid driver status' });
       return;
     }

@@ -306,6 +306,35 @@ export const Admin: React.FC = () => {
         </div>
       </div>
 
+      {/* Operational Summary Strip */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+        <div className="p-3.5 bg-white border border-slate-200 rounded-lg shadow-2xs">
+          <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">Total Operators</span>
+          <div className="text-xl font-bold text-slate-900 font-mono mt-0.5">{users.length}</div>
+          <span className="text-[11px] text-slate-500">Configured in SQLite DB</span>
+        </div>
+
+        <div className="p-3.5 bg-white border border-slate-200 rounded-lg shadow-2xs">
+          <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">Active Accounts</span>
+          <div className="text-xl font-bold text-emerald-700 font-mono mt-0.5">{users.filter((u) => u.status === 'ACTIVE').length}</div>
+          <span className="text-[11px] text-emerald-600 font-medium">Clearance active</span>
+        </div>
+
+        <div className="p-3.5 bg-white border border-slate-200 rounded-lg shadow-2xs">
+          <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">Role Distribution</span>
+          <div className="text-xs font-semibold text-slate-800 mt-1 truncate">
+            {users.filter((u) => u.role === 'DISPATCHER').length} Dispatch &bull; {users.filter((u) => u.role === 'ADMIN').length} Admin &bull; {users.filter((u) => u.role === 'FLEET_MANAGER').length} Fleet
+          </div>
+          <span className="text-[11px] text-slate-500">RBAC segmented</span>
+        </div>
+
+        <div className="p-3.5 bg-white border border-slate-200 rounded-lg shadow-2xs">
+          <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">Recorded Audit Events</span>
+          <div className="text-xl font-bold text-slate-900 font-mono mt-0.5">{auditLogs.length}</div>
+          <span className="text-[11px] text-slate-500">Tamper-evident logs</span>
+        </div>
+      </div>
+
       {/* Tabs */}
       <div className="flex items-center space-x-1 border-b border-slate-200 text-xs font-medium">
         <button

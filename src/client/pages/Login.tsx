@@ -151,8 +151,8 @@ export const Login: React.FC = () => {
         </div>
 
         {/* Footer */}
-        <div className="py-3 px-8 bg-slate-50 border-t border-slate-100 text-center text-[11px] text-slate-400">
-          Enterprise Security Clearance &bull; ISO 27001 Certified
+        <div className="py-3 px-8 bg-slate-50 border-t border-slate-100 text-center text-[11px] text-slate-500 font-medium">
+          Secure Operations Platform &bull; Role-Based Access Control (RBAC)
         </div>
       </div>
     </div>

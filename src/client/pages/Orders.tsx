@@ -118,19 +118,30 @@ export const Orders: React.FC = () => {
     }
   };
 
-  const handleOpenDispatch = (order: Order) => {
+  const handleOpenDispatch = async (order: Order) => {
     setSelectedOrder(order);
-    const availDriver = drivers.find((d) => d.status === 'AVAILABLE');
-    const availVehicle = vehicles.find((v) => v.status === 'ACTIVE' && v.maxPayloadKg >= order.weightKg);
+    try {
+      const [freshDrivers, freshVehicles] = await Promise.all([
+        driversApi.getAll(),
+        vehiclesApi.getAll(),
+      ]);
+      setDrivers(freshDrivers);
+      setVehicles(freshVehicles);
 
-    setDispatchData({
-      driverId: availDriver ? availDriver.id : '',
-      vehicleId: availVehicle ? availVehicle.id : '',
-      priority: order.priority || 'STANDARD',
-      pickupScheduledAt: new Date(Date.now() + 30 * 60 * 1000).toISOString().slice(0, 16),
-      deliveryEstimatedAt: new Date(Date.now() + 3 * 3600 * 1000).toISOString().slice(0, 16),
-      notes: `Dispatched order #${order.orderNumber}`,
-    });
+      const availDriver = freshDrivers.find((d) => d.status === 'AVAILABLE');
+      const availVehicle = freshVehicles.find((v) => (v.status === 'ACTIVE' || v.status === 'IDLE') && v.maxPayloadKg >= order.weightKg);
+
+      setDispatchData({
+        driverId: availDriver ? availDriver.id : '',
+        vehicleId: availVehicle ? availVehicle.id : '',
+        priority: order.priority || 'STANDARD',
+        pickupScheduledAt: new Date(Date.now() + 30 * 60 * 1000).toISOString().slice(0, 16),
+        deliveryEstimatedAt: new Date(Date.now() + 3 * 3600 * 1000).toISOString().slice(0, 16),
+        notes: `Dispatched order #${order.orderNumber}`,
+      });
+    } catch (err) {
+      console.error('Failed to sync drivers/vehicles for dispatch:', err);
+    }
     setIsDispatchModalOpen(true);
   };
 
@@ -529,11 +540,14 @@ export const Orders: React.FC = () => {
                 className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-xs"
               >
                 <option value="">-- Select Driver --</option>
-                {drivers.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.firstName} {d.lastName} ({d.driverCode}) &bull; [{d.status}]
-                  </option>
-                ))}
+                {drivers.map((d) => {
+                  const isAvailable = d.status === 'AVAILABLE';
+                  return (
+                    <option key={d.id} value={d.id} disabled={!isAvailable}>
+                      {d.firstName} {d.lastName} ({d.driverCode || d.code}) &bull; {isAvailable ? '✓ Ready for Dispatch' : `(Busy: ${d.status.replace(/_/g, ' ')})`}
+                    </option>
+                  );
+                })}
               </select>
             </div>
 
@@ -550,11 +564,14 @@ export const Orders: React.FC = () => {
                 }`}
               >
                 <option value="">-- Select Vehicle --</option>
-                {vehicles.map((v) => (
-                  <option key={v.id} value={v.id}>
-                    {v.code} - {v.model} (Max: {v.maxPayloadKg.toLocaleString()} kg) &bull; [{v.status}]
-                  </option>
-                ))}
+                {vehicles.map((v) => {
+                  const isReady = (v.status === 'ACTIVE' || v.status === 'IDLE');
+                  return (
+                    <option key={v.id} value={v.id} disabled={!isReady}>
+                      {v.code} &bull; {v.model} (Max: {v.maxPayloadKg.toLocaleString()} kg) &bull; {isReady ? '✓ Ready' : `(${v.status.replace(/_/g, ' ')})`}
+                    </option>
+                  );
+                })}
               </select>
 
               {isOverweight && (
