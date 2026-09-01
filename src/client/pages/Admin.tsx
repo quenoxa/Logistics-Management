@@ -79,7 +79,7 @@ export const Admin: React.FC = () => {
     e.preventDefault();
     try {
       const created = await adminApi.createUser(newUser as any);
-      success('Operator Created', `User ${created.name} (${created.email}) added.`);
+      success('OPERATOR PROVISIONED', `User ${created.name} (${created.email}) added.`);
       setIsAddUserOpen(false);
       fetchData(false);
       setNewUser({
@@ -120,7 +120,7 @@ export const Admin: React.FC = () => {
       }
 
       await adminApi.updateUser(selectedUser.id, payload);
-      success('User Updated', `Account details for ${selectedUser.email} saved.`);
+      success('OPERATOR UPDATED', `Account details for ${selectedUser.email} saved.`);
       setIsEditUserOpen(false);
       setSelectedUser(null);
       fetchData(false);
@@ -134,7 +134,7 @@ export const Admin: React.FC = () => {
     try {
       setIsDeleting(true);
       await adminApi.deleteUser(deleteTarget.id);
-      success('User Deleted', `Account ${deleteTarget.email} deleted.`);
+      success('OPERATOR PURGED', `Account ${deleteTarget.email} deleted.`);
       setDeleteTarget(null);
       fetchData(false);
     } catch (err: any) {
@@ -146,35 +146,35 @@ export const Admin: React.FC = () => {
 
   const userColumns: Column<User>[] = [
     {
-      header: 'Operator Name',
+      header: 'OPERATOR NAME & EMAIL',
       accessor: 'name',
       sortable: true,
       render: (u) => (
         <div className="flex items-center space-x-2.5">
-          <div className="w-7 h-7 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-xs">
+          <div className="w-7 h-7 rounded-full bg-ops-panel text-cyan-400 border border-cyan-500/30 flex items-center justify-center font-mono font-bold text-xs">
             {u.name[0]}
           </div>
           <div>
-            <span className="font-semibold text-slate-900 block">{u.name}</span>
-            <span className="text-[11px] text-slate-500 font-mono">{u.email}</span>
+            <span className="font-semibold text-white block">{u.name}</span>
+            <span className="text-[10px] text-ops-dim font-mono">{u.email}</span>
           </div>
         </div>
       ),
     },
     {
-      header: 'Role Clearance',
+      header: 'ROLE CLEARANCE',
       accessor: 'role',
       sortable: true,
       render: (u) => (
         <span
-          className={`px-2 py-0.5 rounded text-xs font-medium border ${
+          className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold border ${
             u.role === 'ADMIN'
-              ? 'bg-slate-900 text-white border-slate-900'
+              ? 'bg-rose-950/60 text-rose-300 border-rose-800/50 shadow-glow-rose/20'
               : u.role === 'DISPATCHER'
-              ? 'bg-blue-50 text-blue-700 border-blue-200'
+              ? 'bg-cyan-950/60 text-cyan-300 border-cyan-800/50 shadow-glow-cyan/20'
               : u.role === 'FLEET_MANAGER'
-              ? 'bg-purple-50 text-purple-700 border-purple-200'
-              : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+              ? 'bg-purple-950/60 text-purple-300 border-purple-800/50'
+              : 'bg-emerald-950/60 text-emerald-300 border-emerald-800/50'
           }`}
         >
           {u.role}
@@ -182,15 +182,15 @@ export const Admin: React.FC = () => {
       ),
     },
     {
-      header: 'Account Status',
+      header: 'STATUS',
       accessor: 'status',
       sortable: true,
       render: (u) => (
         <span
-          className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${
+          className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
             u.status === 'ACTIVE'
-              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-              : 'bg-slate-100 text-slate-600'
+              ? 'bg-emerald-950/60 text-emerald-300 border border-emerald-800/50'
+              : 'bg-ops-bg text-ops-dim border border-ops-border'
           }`}
         >
           {u.status}
@@ -198,30 +198,30 @@ export const Admin: React.FC = () => {
       ),
     },
     {
-      header: 'Created Date',
+      header: 'ENROLLED DATE',
       accessor: 'createdAt',
       sortable: true,
       render: (u) => (
-        <span className="text-xs text-slate-500 font-mono">
+        <span className="text-xs text-ops-dim font-mono">
           {u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-IN') : '—'}
         </span>
       ),
     },
     {
-      header: 'Actions',
+      header: 'ACTIONS',
       className: 'text-right',
       render: (u) => (
-        <div className="flex items-center justify-end gap-1">
+        <div className="flex items-center justify-end gap-1.5 font-mono">
           <button
             onClick={() => openEditUser(u)}
-            className="p-1 text-slate-500 hover:text-slate-900 rounded transition-colors"
+            className="p-1 text-ops-dim hover:text-cyan-400 rounded transition-colors"
             title="Edit User"
           >
             <Edit className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => setDeleteTarget(u)}
-            className="p-1 text-slate-400 hover:text-rose-600 rounded transition-colors"
+            className="p-1 text-ops-dim hover:text-rose-400 rounded transition-colors"
             title="Delete User"
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -233,63 +233,66 @@ export const Admin: React.FC = () => {
 
   const auditColumns: Column<AuditLog>[] = [
     {
-      header: 'Timestamp (IST)',
+      header: 'TIMESTAMP (IST)',
       accessor: 'createdAt',
       sortable: true,
       render: (a) => (
-        <span className="font-mono text-[11px] text-slate-600">
-          {new Date(a.createdAt || a.timestamp || Date.now()).toLocaleString('en-IN')}
+        <span className="font-mono text-[10px] text-cyan-400">
+          {new Date(a.createdAt || (a as any).timestamp || Date.now()).toLocaleString('en-IN')}
         </span>
       ),
     },
     {
-      header: 'Action / Event',
+      header: 'ACTION EVENT',
       accessor: 'action',
       sortable: true,
       render: (a) => (
-        <span className="font-mono text-xs font-semibold text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded">
+        <span className="font-mono text-xs font-bold text-white bg-ops-bg border border-ops-border px-2 py-0.5 rounded">
           {a.action}
         </span>
       ),
     },
     {
-      header: 'Entity / ID',
+      header: 'TARGET ENTITY',
       render: (a) => (
-        <div className="text-xs">
-          <span className="font-semibold text-slate-800">{a.entity || a.entityType || 'Entity'}</span>
-          {a.entityId && <span className="text-[11px] text-slate-400 font-mono block truncate max-w-xs">{a.entityId}</span>}
+        <div className="text-xs font-mono">
+          <span className="font-bold text-ops-text">{a.entity || (a as any).entityType || 'Entity'}</span>
+          {(a.entityId || (a as any).recordId) && (
+            <span className="text-[10px] text-ops-dim block truncate max-w-xs">{a.entityId || (a as any).recordId}</span>
+          )}
         </div>
       ),
     },
     {
-      header: 'Actor',
+      header: 'ACTOR SIGNATURE',
       accessor: 'userId',
-      render: (a) => <span className="text-xs text-slate-600 font-medium">{a.userId || 'System'}</span>,
+      render: (a) => <span className="text-xs font-mono text-ops-muted">{a.userId || (a as any).userEmail || 'System Agent'}</span>,
     },
   ];
 
   return (
     <div className="space-y-5 pb-16">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-4">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-ops-border pb-4">
         <div>
-          <div className="flex items-center space-x-2">
-            <h1 className="text-xl font-bold text-slate-900 tracking-tight">
+          <div className="flex items-center space-x-2.5">
+            <h1 className="text-xl font-bold font-mono tracking-tight text-white uppercase flex items-center gap-2">
+              <span className="w-2 h-4 bg-rose-500 rounded-xs"></span>
               Administration & Security Governance
             </h1>
-            <span className="px-2 py-0.5 rounded-full bg-slate-900 text-white text-xs font-semibold">
-              Admin Only
+            <span className="px-2.5 py-0.5 rounded-full bg-rose-950/60 text-rose-300 border border-rose-800/50 text-[10px] font-mono font-bold shadow-glow-rose/20">
+              ADMIN CLEARANCE ONLY
             </span>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-ops-muted mt-1 font-sans">
             Operator role provisioning, cryptographic audit event stream, and database runtime diagnostics
           </p>
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2.5 font-mono">
           <button
             onClick={() => fetchData(true)}
-            className="p-1.5 rounded-md bg-white hover:bg-slate-50 border border-slate-300 text-slate-600 shadow-2xs transition-colors"
+            className="p-2 rounded-md bg-ops-surface hover:bg-ops-panel border border-ops-border text-ops-muted hover:text-ops-text shadow-panel transition-colors"
             title="Refresh logs"
           >
             <RotateCw className="w-3.5 h-3.5" />
@@ -297,10 +300,10 @@ export const Admin: React.FC = () => {
           {activeTab === 'users' && (
             <button
               onClick={() => setIsAddUserOpen(true)}
-              className="px-3.5 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold inline-flex items-center gap-1.5 shadow-2xs transition-colors"
+              className="px-4 py-1.5 rounded-md bg-cyan-600 hover:bg-cyan-500 text-black text-xs font-bold uppercase tracking-wider inline-flex items-center gap-1.5 shadow-glow-cyan transition-all"
             >
               <Plus className="w-4 h-4" />
-              <span>Add Operator Account</span>
+              <span>PROVISION OPERATOR</span>
             </button>
           )}
         </div>
@@ -308,69 +311,69 @@ export const Admin: React.FC = () => {
 
       {/* Operational Summary Strip */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-        <div className="p-3.5 bg-white border border-slate-200 rounded-lg shadow-2xs">
-          <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">Total Operators</span>
-          <div className="text-xl font-bold text-slate-900 font-mono mt-0.5">{users.length}</div>
-          <span className="text-[11px] text-slate-500">Configured in SQLite DB</span>
+        <div className="p-3.5 bg-ops-surface border border-ops-border rounded-xl shadow-panel">
+          <span className="text-[10px] font-mono font-bold text-ops-dim uppercase tracking-wider block">Total Operators</span>
+          <div className="text-xl font-bold text-white font-mono mt-0.5">{users.length}</div>
+          <span className="text-[10px] text-ops-dim font-mono">Configured in SQLite DB</span>
         </div>
 
-        <div className="p-3.5 bg-white border border-slate-200 rounded-lg shadow-2xs">
-          <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">Active Accounts</span>
-          <div className="text-xl font-bold text-emerald-700 font-mono mt-0.5">{users.filter((u) => u.status === 'ACTIVE').length}</div>
-          <span className="text-[11px] text-emerald-600 font-medium">Clearance active</span>
+        <div className="p-3.5 bg-ops-surface border border-ops-border rounded-xl shadow-panel">
+          <span className="text-[10px] font-mono font-bold text-ops-dim uppercase tracking-wider block">Active Accounts</span>
+          <div className="text-xl font-bold text-emerald-400 font-mono mt-0.5">{users.filter((u) => u.status === 'ACTIVE').length}</div>
+          <span className="text-[10px] text-emerald-400 font-mono font-semibold">Clearance verified</span>
         </div>
 
-        <div className="p-3.5 bg-white border border-slate-200 rounded-lg shadow-2xs">
-          <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">Role Distribution</span>
-          <div className="text-xs font-semibold text-slate-800 mt-1 truncate">
-            {users.filter((u) => u.role === 'DISPATCHER').length} Dispatch &bull; {users.filter((u) => u.role === 'ADMIN').length} Admin &bull; {users.filter((u) => u.role === 'FLEET_MANAGER').length} Fleet
+        <div className="p-3.5 bg-ops-surface border border-ops-border rounded-xl shadow-panel">
+          <span className="text-[10px] font-mono font-bold text-ops-dim uppercase tracking-wider block">Role Distribution</span>
+          <div className="text-xs font-mono font-bold text-white mt-1 truncate">
+            {users.filter((u) => u.role === 'DISPATCHER').length} Dispatch &bull; {users.filter((u) => u.role === 'ADMIN').length} Admin
           </div>
-          <span className="text-[11px] text-slate-500">RBAC segmented</span>
+          <span className="text-[10px] text-ops-dim font-mono">RBAC segmented</span>
         </div>
 
-        <div className="p-3.5 bg-white border border-slate-200 rounded-lg shadow-2xs">
-          <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">Recorded Audit Events</span>
-          <div className="text-xl font-bold text-slate-900 font-mono mt-0.5">{auditLogs.length}</div>
-          <span className="text-[11px] text-slate-500">Tamper-evident logs</span>
+        <div className="p-3.5 bg-ops-surface border border-ops-border rounded-xl shadow-panel">
+          <span className="text-[10px] font-mono font-bold text-ops-dim uppercase tracking-wider block">Audit Events Logged</span>
+          <div className="text-xl font-bold text-cyan-400 font-mono mt-0.5">{auditLogs.length}</div>
+          <span className="text-[10px] text-ops-dim font-mono">Tamper-evident logs</span>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center space-x-1 border-b border-slate-200 text-xs font-medium">
+      <div className="flex items-center space-x-1 border-b border-ops-border text-xs font-mono font-bold">
         <button
           onClick={() => setActiveTab('users')}
-          className={`px-4 py-2 border-b-2 transition-colors flex items-center gap-1.5 ${
+          className={`px-4 py-2 border-b-2 transition-all flex items-center gap-1.5 ${
             activeTab === 'users'
-              ? 'border-slate-900 text-slate-900 font-bold'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'border-cyan-400 text-cyan-300'
+              : 'border-transparent text-ops-dim hover:text-ops-text'
           }`}
         >
           <Users className="w-3.5 h-3.5" />
-          <span>User Accounts ({users.length})</span>
+          <span>OPERATOR ACCOUNTS ({users.length})</span>
         </button>
 
         <button
           onClick={() => setActiveTab('audit')}
-          className={`px-4 py-2 border-b-2 transition-colors flex items-center gap-1.5 ${
+          className={`px-4 py-2 border-b-2 transition-all flex items-center gap-1.5 ${
             activeTab === 'audit'
-              ? 'border-slate-900 text-slate-900 font-bold'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'border-cyan-400 text-cyan-300'
+              : 'border-transparent text-ops-dim hover:text-ops-text'
           }`}
         >
           <ShieldCheck className="w-3.5 h-3.5" />
-          <span>Activity Audit Stream ({auditLogs.length})</span>
+          <span>AUDIT EVENT STREAM ({auditLogs.length})</span>
         </button>
 
         <button
           onClick={() => setActiveTab('diagnostics')}
-          className={`px-4 py-2 border-b-2 transition-colors flex items-center gap-1.5 ${
+          className={`px-4 py-2 border-b-2 transition-all flex items-center gap-1.5 ${
             activeTab === 'diagnostics'
-              ? 'border-slate-900 text-slate-900 font-bold'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'border-cyan-400 text-cyan-300'
+              : 'border-transparent text-ops-dim hover:text-ops-text'
           }`}
         >
           <Activity className="w-3.5 h-3.5" />
-          <span>Engine Diagnostics</span>
+          <span>RUNTIME DIAGNOSTICS</span>
         </button>
       </div>
 
@@ -400,7 +403,7 @@ export const Admin: React.FC = () => {
           searchPlaceholder="Search audit events by action, entity, user..."
           searchFilter={(a, q) => {
             const matchAction = a.action.toLowerCase().includes(q.toLowerCase());
-            const matchEntity = (a.entity || a.entityType || '').toLowerCase().includes(q.toLowerCase());
+            const matchEntity = (a.entity || (a as any).entityType || '').toLowerCase().includes(q.toLowerCase());
             return matchAction || matchEntity;
           }}
           isLoading={isLoading}
@@ -409,55 +412,55 @@ export const Admin: React.FC = () => {
       )}
 
       {activeTab === 'diagnostics' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-xs">
-          <div className="p-4 bg-white border border-slate-200 rounded-lg shadow-2xs space-y-3">
-            <h3 className="font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-100 pb-2">
-              <Server className="w-3.5 h-3.5 text-slate-500" />
-              <span>Node.js / Express Runtime State</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-xs font-mono">
+          <div className="p-4 bg-ops-surface border border-ops-border rounded-xl shadow-panel space-y-3">
+            <h3 className="font-bold text-white uppercase tracking-wider flex items-center gap-2 border-b border-ops-border pb-2">
+              <span className="w-1.5 h-3 bg-cyan-400 rounded-xs"></span>
+              Node.js / Express Runtime State
             </h3>
 
             <div className="space-y-2 text-xs">
-              <div className="flex justify-between py-1 border-b border-slate-100">
-                <span className="text-slate-500">API Status</span>
-                <span className="text-emerald-600 font-bold">ONLINE (HTTP 200)</span>
+              <div className="flex justify-between py-1 border-b border-ops-border">
+                <span className="text-ops-dim">API Health</span>
+                <span className="text-emerald-400 font-bold">ONLINE (HTTP 200)</span>
               </div>
-              <div className="flex justify-between py-1 border-b border-slate-100">
-                <span className="text-slate-500">Node Engine</span>
-                <span className="font-mono text-slate-800">{systemHealth?.environment || 'v20.x (Production)'}</span>
+              <div className="flex justify-between py-1 border-b border-ops-border">
+                <span className="text-ops-dim">Node Engine</span>
+                <span className="text-white">{systemHealth?.environment || 'v20.x (Production)'}</span>
               </div>
-              <div className="flex justify-between py-1 border-b border-slate-100">
-                <span className="text-slate-500">Server Uptime</span>
-                <span className="font-mono text-slate-800">{systemHealth?.uptime || '99.98% SLA'}</span>
+              <div className="flex justify-between py-1 border-b border-ops-border">
+                <span className="text-ops-dim">Server Uptime</span>
+                <span className="text-cyan-400">{systemHealth?.uptime || '99.98% SLA'}</span>
               </div>
               <div className="flex justify-between py-1">
-                <span className="text-slate-500">Database Engine</span>
-                <span className="font-semibold text-slate-800">SQLite (Prisma ORM v5.22.0)</span>
+                <span className="text-ops-dim">Database ORM</span>
+                <span className="text-white font-bold">SQLite (Prisma ORM v5.22.0)</span>
               </div>
             </div>
           </div>
 
-          <div className="p-4 bg-white border border-slate-200 rounded-lg shadow-2xs space-y-3">
-            <h3 className="font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-100 pb-2">
-              <Database className="w-3.5 h-3.5 text-slate-500" />
-              <span>Persistent Table Record Counts</span>
+          <div className="p-4 bg-ops-surface border border-ops-border rounded-xl shadow-panel space-y-3">
+            <h3 className="font-bold text-white uppercase tracking-wider flex items-center gap-2 border-b border-ops-border pb-2">
+              <span className="w-1.5 h-3 bg-cyan-400 rounded-xs"></span>
+              Persistent Table Record Counts
             </h3>
 
             <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="p-2 bg-slate-50 border border-slate-200 rounded">
-                <span className="text-[11px] text-slate-400 block">Deliveries Table</span>
-                <span className="font-mono text-sm font-bold text-slate-900">{systemHealth?.recordCounts?.deliveries || 0}</span>
+              <div className="p-3 bg-ops-bg border border-ops-border rounded-lg">
+                <span className="text-[10px] text-ops-dim block uppercase">Deliveries Table</span>
+                <span className="font-mono text-base font-bold text-cyan-400">{systemHealth?.recordCounts?.deliveries || 0}</span>
               </div>
-              <div className="p-2 bg-slate-50 border border-slate-200 rounded">
-                <span className="text-[11px] text-slate-400 block">Orders Table</span>
-                <span className="font-mono text-sm font-bold text-slate-900">{systemHealth?.recordCounts?.orders || 0}</span>
+              <div className="p-3 bg-ops-bg border border-ops-border rounded-lg">
+                <span className="text-[10px] text-ops-dim block uppercase">Orders Table</span>
+                <span className="font-mono text-base font-bold text-cyan-400">{systemHealth?.recordCounts?.orders || 0}</span>
               </div>
-              <div className="p-2 bg-slate-50 border border-slate-200 rounded">
-                <span className="text-[11px] text-slate-400 block">Vehicles Table</span>
-                <span className="font-mono text-sm font-bold text-slate-900">{systemHealth?.recordCounts?.vehicles || 0}</span>
+              <div className="p-3 bg-ops-bg border border-ops-border rounded-lg">
+                <span className="text-[10px] text-ops-dim block uppercase">Vehicles Table</span>
+                <span className="font-mono text-base font-bold text-cyan-400">{systemHealth?.recordCounts?.vehicles || 0}</span>
               </div>
-              <div className="p-2 bg-slate-50 border border-slate-200 rounded">
-                <span className="text-[11px] text-slate-400 block">Drivers Table</span>
-                <span className="font-mono text-sm font-bold text-slate-900">{systemHealth?.recordCounts?.drivers || 0}</span>
+              <div className="p-3 bg-ops-bg border border-ops-border rounded-lg">
+                <span className="text-[10px] text-ops-dim block uppercase">Drivers Table</span>
+                <span className="font-mono text-base font-bold text-cyan-400">{systemHealth?.recordCounts?.drivers || 0}</span>
               </div>
             </div>
           </div>
@@ -468,12 +471,12 @@ export const Admin: React.FC = () => {
       <Modal
         isOpen={isAddUserOpen}
         onClose={() => setIsAddUserOpen(false)}
-        title="Create System Operator Account"
+        title="Provision Operator Account"
       >
-        <form onSubmit={handleCreateUser} className="space-y-4 text-xs">
+        <form onSubmit={handleCreateUser} className="space-y-4 text-xs font-sans">
           <div>
-            <label className="block text-slate-700 font-medium mb-1">
-              Full Name <span className="text-rose-500">*</span>
+            <label className="block font-mono text-[11px] font-bold text-ops-dim uppercase mb-1">
+              Full Name <span className="text-rose-400">*</span>
             </label>
             <input
               type="text"
@@ -481,13 +484,13 @@ export const Admin: React.FC = () => {
               value={newUser.name}
               onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
               placeholder="e.g., Rajesh Sharma"
-              className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-xs"
+              className="w-full px-3 py-2 bg-ops-bg border border-ops-border rounded-lg text-xs text-ops-text focus:border-cyan-500"
             />
           </div>
 
           <div>
-            <label className="block text-slate-700 font-medium mb-1">
-              Email Address <span className="text-rose-500">*</span>
+            <label className="block font-mono text-[11px] font-bold text-ops-dim uppercase mb-1">
+              Work Email <span className="text-rose-400">*</span>
             </label>
             <input
               type="email"
@@ -495,13 +498,13 @@ export const Admin: React.FC = () => {
               value={newUser.email}
               onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
               placeholder="e.g., r.sharma@fleetops.io"
-              className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-xs font-mono"
+              className="w-full px-3 py-2 bg-ops-bg border border-ops-border rounded-lg text-xs font-mono text-ops-text focus:border-cyan-500"
             />
           </div>
 
           <div>
-            <label className="block text-slate-700 font-medium mb-1">
-              Initial Password <span className="text-rose-500">*</span>
+            <label className="block font-mono text-[11px] font-bold text-ops-dim uppercase mb-1">
+              Initial Passphrase <span className="text-rose-400">*</span>
             </label>
             <input
               type="password"
@@ -509,17 +512,17 @@ export const Admin: React.FC = () => {
               value={newUser.password}
               onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
               placeholder="••••••••"
-              className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-xs font-mono"
+              className="w-full px-3 py-2 bg-ops-bg border border-ops-border rounded-lg text-xs font-mono text-ops-text focus:border-cyan-500"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-slate-700 font-medium mb-1">Role Clearance</label>
+              <label className="block font-mono text-[11px] font-bold text-ops-dim uppercase mb-1">Role Clearance</label>
               <select
                 value={newUser.role}
                 onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-xs"
+                className="w-full px-3 py-2 bg-ops-bg border border-ops-border rounded-lg text-xs font-mono text-ops-text focus:border-cyan-500"
               >
                 <option value="DISPATCHER">Dispatcher</option>
                 <option value="FLEET_MANAGER">Fleet Manager</option>
@@ -528,11 +531,11 @@ export const Admin: React.FC = () => {
               </select>
             </div>
             <div>
-              <label className="block text-slate-700 font-medium mb-1">Status</label>
+              <label className="block font-mono text-[11px] font-bold text-ops-dim uppercase mb-1">Status</label>
               <select
                 value={newUser.status}
                 onChange={(e) => setNewUser({ ...newUser, status: e.target.value })}
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-xs"
+                className="w-full px-3 py-2 bg-ops-bg border border-ops-border rounded-lg text-xs font-mono text-ops-text focus:border-cyan-500"
               >
                 <option value="ACTIVE">Active</option>
                 <option value="INACTIVE">Inactive</option>
@@ -540,19 +543,19 @@ export const Admin: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex justify-end gap-2 pt-3 border-t border-slate-200">
+          <div className="flex justify-end gap-2 pt-3 border-t border-ops-border">
             <button
               type="button"
               onClick={() => setIsAddUserOpen(false)}
-              className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 rounded-md font-medium"
+              className="px-3.5 py-1.5 bg-ops-panel hover:bg-ops-panelHover border border-ops-border text-ops-muted hover:text-ops-text rounded-md font-mono font-semibold"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-md font-semibold shadow-2xs"
+              className="px-4 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-black font-mono font-bold rounded-md uppercase tracking-wider shadow-glow-cyan"
             >
-              Provision Account
+              Provision Operator
             </button>
           </div>
         </form>
@@ -565,25 +568,25 @@ export const Admin: React.FC = () => {
           onClose={() => setIsEditUserOpen(false)}
           title={`Edit Account — ${selectedUser.email}`}
         >
-          <form onSubmit={handleUpdateUser} className="space-y-4 text-xs">
+          <form onSubmit={handleUpdateUser} className="space-y-4 text-xs font-sans">
             <div>
-              <label className="block text-slate-700 font-medium mb-1">Full Name</label>
+              <label className="block font-mono text-[11px] font-bold text-ops-dim uppercase mb-1">Full Name</label>
               <input
                 type="text"
                 required
                 value={editUserData.name}
                 onChange={(e) => setEditUserData({ ...editUserData, name: e.target.value })}
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-xs"
+                className="w-full px-3 py-2 bg-ops-bg border border-ops-border rounded-lg text-xs text-ops-text focus:border-cyan-500"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-slate-700 font-medium mb-1">Role Clearance</label>
+                <label className="block font-mono text-[11px] font-bold text-ops-dim uppercase mb-1">Role Clearance</label>
                 <select
                   value={editUserData.role}
                   onChange={(e) => setEditUserData({ ...editUserData, role: e.target.value })}
-                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-xs"
+                  className="w-full px-3 py-2 bg-ops-bg border border-ops-border rounded-lg text-xs font-mono text-ops-text focus:border-cyan-500"
                 >
                   <option value="DISPATCHER">Dispatcher</option>
                   <option value="FLEET_MANAGER">Fleet Manager</option>
@@ -592,11 +595,11 @@ export const Admin: React.FC = () => {
                 </select>
               </div>
               <div>
-                <label className="block text-slate-700 font-medium mb-1">Account Status</label>
+                <label className="block font-mono text-[11px] font-bold text-ops-dim uppercase mb-1">Status</label>
                 <select
                   value={editUserData.status}
                   onChange={(e) => setEditUserData({ ...editUserData, status: e.target.value })}
-                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-xs"
+                  className="w-full px-3 py-2 bg-ops-bg border border-ops-border rounded-lg text-xs font-mono text-ops-text focus:border-cyan-500"
                 >
                   <option value="ACTIVE">Active</option>
                   <option value="INACTIVE">Inactive</option>
@@ -605,29 +608,29 @@ export const Admin: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-slate-700 font-medium mb-1">
-                Reset Password (leave blank to keep current)
+              <label className="block font-mono text-[11px] font-bold text-ops-dim uppercase mb-1">
+                Reset Passphrase (leave blank to retain current)
               </label>
               <input
                 type="password"
                 value={editUserData.password}
                 onChange={(e) => setEditUserData({ ...editUserData, password: e.target.value })}
-                placeholder="New password..."
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-xs font-mono"
+                placeholder="New passphrase..."
+                className="w-full px-3 py-2 bg-ops-bg border border-ops-border rounded-lg text-xs font-mono text-ops-text focus:border-cyan-500"
               />
             </div>
 
-            <div className="flex justify-end gap-2 pt-3 border-t border-slate-200">
+            <div className="flex justify-end gap-2 pt-3 border-t border-ops-border">
               <button
                 type="button"
                 onClick={() => setIsEditUserOpen(false)}
-                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 rounded-md font-medium"
+                className="px-3.5 py-1.5 bg-ops-panel hover:bg-ops-panelHover border border-ops-border text-ops-muted hover:text-ops-text rounded-md font-mono font-semibold"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-md font-semibold shadow-2xs"
+                className="px-4 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-black font-mono font-bold rounded-md uppercase tracking-wider shadow-glow-cyan"
               >
                 Save Changes
               </button>
@@ -641,9 +644,9 @@ export const Admin: React.FC = () => {
         isOpen={Boolean(deleteTarget)}
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDeleteUser}
-        title="Delete Operator Account"
+        title="Purge Operator Account"
         message={`Are you sure you want to permanently delete account for ${deleteTarget?.name} (${deleteTarget?.email})?`}
-        confirmText="Delete Account"
+        confirmText="Purge Account"
         isDangerous={true}
         isLoading={isDeleting}
       />

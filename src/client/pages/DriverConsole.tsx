@@ -13,6 +13,7 @@ import {
   User,
   Power,
   Calendar,
+  Radio,
 } from 'lucide-react';
 import { deliveriesApi, driversApi } from '../services/api';
 import { Delivery, Driver } from '../../shared/types';
@@ -65,7 +66,7 @@ export const DriverConsole: React.FC = () => {
     try {
       setIsUpdating(true);
       await driversApi.updateStatus(driverProfile.id, nextStatus);
-      success('Shift Status Updated', `You are now marked as ${nextStatus.replace(/_/g, ' ')}.`);
+      success('SHIFT STATUS COMMITTED', `You are now marked as ${nextStatus.replace(/_/g, ' ')}.`);
       await fetchDriverData(false);
     } catch (err: any) {
       error('Shift Update Failed', err.response?.data?.error || 'Failed to update shift status.');
@@ -89,7 +90,7 @@ export const DriverConsole: React.FC = () => {
         notes: `Driver milestone update: ${nextStatus}`,
         locationName: nextStatus === 'PICKED_UP' ? activeDelivery.order.pickupAddress : 'En Route Highway Corridor',
       });
-      success('Milestone Logged', `Status advanced to ${nextStatus.replace(/_/g, ' ')}.`);
+      success('MILESTONE COMMITTED', `Status advanced to ${nextStatus.replace(/_/g, ' ')}.`);
       await fetchDriverData(false);
     } catch (err: any) {
       error('Update Failed', err.response?.data?.error || 'Failed to advance delivery milestone.');
@@ -110,7 +111,7 @@ export const DriverConsole: React.FC = () => {
         notes: deliveryNotes,
         locationName: activeDelivery.order.deliveryAddress,
       });
-      success('Trip Completed! 🎉', 'Digital Proof of Delivery verified & recorded.');
+      success('TRIP COMPLETED! 🚀', 'Cryptographic Proof of Delivery recorded in database.');
       setIsSignModalOpen(false);
       setRecipientName('');
       setDeliveryNotes('');
@@ -125,9 +126,9 @@ export const DriverConsole: React.FC = () => {
   if (isLoading && !driverProfile) {
     return (
       <div className="max-w-3xl mx-auto space-y-5 pb-16">
-        <Skeleton className="h-20 w-full rounded-lg" />
-        <Skeleton className="h-64 w-full rounded-lg" />
-        <Skeleton className="h-48 w-full rounded-lg" />
+        <Skeleton className="h-20 w-full rounded-lg bg-ops-panel" />
+        <Skeleton className="h-64 w-full rounded-lg bg-ops-panel" />
+        <Skeleton className="h-48 w-full rounded-lg bg-ops-panel" />
       </div>
     );
   }
@@ -135,30 +136,30 @@ export const DriverConsole: React.FC = () => {
   return (
     <div className="max-w-3xl mx-auto space-y-6 pb-16">
       {/* Driver Header Profile Bar */}
-      <div className="p-4 bg-white border border-slate-200 rounded-lg shadow-2xs flex flex-wrap items-center justify-between gap-4">
+      <div className="p-4 bg-ops-surface border border-ops-border rounded-xl shadow-panel flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center space-x-3.5">
-          <div className="w-11 h-11 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-sm shadow-xs">
+          <div className="w-11 h-11 rounded-full bg-ops-panel text-cyan-400 border border-cyan-500/30 flex items-center justify-center font-mono font-bold text-sm shadow-glow-cyan">
             {driverProfile ? `${driverProfile.firstName[0]}${driverProfile.lastName[0]}` : 'D'}
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <h2 className="text-base font-bold text-slate-900">
+              <h2 className="text-base font-bold text-white">
                 {driverProfile ? `${driverProfile.firstName} ${driverProfile.lastName}` : 'Commercial Operator'}
               </h2>
-              <span className="px-2 py-0.5 rounded bg-slate-100 font-mono text-[11px] font-semibold text-slate-700">
-                {driverProfile?.driverCode || 'DRV-101'}
+              <span className="px-2 py-0.5 rounded bg-ops-bg border border-ops-border font-mono text-[10px] font-bold text-cyan-400">
+                {driverProfile?.driverCode || driverProfile?.code || 'DRV-101'}
               </span>
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">
-              CDL Class: {driverProfile?.licenseClass || 'CDL-A'} &bull; {driverProfile?.phone}
+            <p className="text-xs text-ops-dim mt-0.5 font-mono">
+              CDL CLASS: {driverProfile?.licenseClass || 'CDL-A'} &bull; {driverProfile?.phone}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center space-x-2.5">
+        <div className="flex items-center space-x-2.5 font-mono">
           <button
             onClick={() => fetchDriverData(true)}
-            className="p-2 rounded-md bg-white hover:bg-slate-50 border border-slate-300 text-slate-600 shadow-2xs transition-colors"
+            className="p-2 rounded-md bg-ops-bg hover:bg-ops-panel border border-ops-border text-ops-muted hover:text-ops-text shadow-panel transition-colors"
             title="Refresh assigned trip"
           >
             <RotateCw className="w-4 h-4" />
@@ -168,14 +169,14 @@ export const DriverConsole: React.FC = () => {
             <button
               onClick={handleToggleAvailability}
               disabled={isUpdating}
-              className={`px-3 py-1.5 rounded-md text-xs font-semibold inline-flex items-center gap-1.5 transition-colors shadow-2xs ${
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-mono font-bold uppercase tracking-wider inline-flex items-center gap-1.5 transition-all shadow-panel ${
                 driverProfile?.status === 'AVAILABLE'
-                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                  : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300'
+                  ? 'bg-emerald-950/60 text-emerald-300 border border-emerald-800/50 shadow-glow-emerald/20'
+                  : 'bg-ops-bg hover:bg-ops-panel text-ops-dim hover:text-ops-text border border-ops-border'
               }`}
             >
               <Power className="w-3.5 h-3.5" />
-              <span>{driverProfile?.status === 'AVAILABLE' ? 'On Shift (Available)' : 'Off Duty (Tap to Go Online)'}</span>
+              <span>{driverProfile?.status === 'AVAILABLE' ? 'ON SHIFT (ONLINE)' : 'OFF DUTY (TAP TO GO ONLINE)'}</span>
             </button>
           )}
         </div>
@@ -183,11 +184,11 @@ export const DriverConsole: React.FC = () => {
 
       {/* Active Shipment Section */}
       {activeDelivery ? (
-        <div className="p-5 bg-white border border-slate-200 rounded-lg shadow-2xs space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div className="p-5 bg-ops-surface border border-cyan-500/40 rounded-xl shadow-glow-cyan/20 space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-ops-border">
             <div className="flex items-center space-x-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
-              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+              <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping"></span>
+              <h3 className="text-xs font-mono font-bold text-white uppercase tracking-wider">
                 Current Assigned Dispatch
               </h3>
             </div>
@@ -195,63 +196,63 @@ export const DriverConsole: React.FC = () => {
           </div>
 
           <div>
-            <span className="font-mono text-lg font-bold text-slate-900 block">
-              {activeDelivery.trackingNumber}
+            <span className="font-mono text-xl font-bold text-cyan-400 block">
+              #{activeDelivery.trackingNumber}
             </span>
-            <p className="text-xs text-slate-600 mt-0.5">
-              Customer: <span className="font-semibold text-slate-800">{activeDelivery.order?.customerName}</span> ({activeDelivery.order?.customerPhone})
+            <p className="text-xs text-ops-muted mt-1 font-sans">
+              Consignee: <span className="font-semibold text-white">{activeDelivery.order?.customerName}</span> ({activeDelivery.order?.customerPhone})
             </p>
           </div>
 
           {/* Pickup and Dropoff Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-            <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-1">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
-                <MapPin className="w-3.5 h-3.5 text-blue-600" />
+            <div className="p-3 bg-ops-bg border border-ops-border rounded-lg space-y-1">
+              <span className="text-[10px] font-mono font-bold text-ops-dim uppercase tracking-wider flex items-center gap-1">
+                <MapPin className="w-3.5 h-3.5 text-indigo-400" />
                 <span>Pickup Origin</span>
               </span>
-              <p className="text-slate-800 font-medium">{activeDelivery.order?.pickupAddress}</p>
+              <p className="text-ops-text font-sans font-medium">{activeDelivery.order?.pickupAddress}</p>
             </div>
 
-            <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-1">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
-                <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+            <div className="p-3 bg-ops-bg border border-ops-border rounded-lg space-y-1">
+              <span className="text-[10px] font-mono font-bold text-ops-dim uppercase tracking-wider flex items-center gap-1">
+                <MapPin className="w-3.5 h-3.5 text-emerald-400" />
                 <span>Destination Drop-off</span>
               </span>
-              <p className="text-slate-800 font-medium">{activeDelivery.order?.deliveryAddress}</p>
+              <p className="text-ops-text font-sans font-medium">{activeDelivery.order?.deliveryAddress}</p>
             </div>
           </div>
 
           {/* Cargo Specs */}
-          <div className="grid grid-cols-3 gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-center text-xs">
+          <div className="grid grid-cols-3 gap-2 p-2.5 bg-ops-bg border border-ops-border rounded-lg text-center text-xs font-mono">
             <div>
-              <span className="text-[10px] text-slate-400 block uppercase">Weight</span>
-              <span className="font-semibold text-slate-900 font-mono">{activeDelivery.order?.weightKg.toLocaleString()} kg</span>
+              <span className="text-[9px] text-ops-dim block uppercase">Payload</span>
+              <span className="font-bold text-white">{activeDelivery.order?.weightKg.toLocaleString()} kg</span>
             </div>
             <div>
-              <span className="text-[10px] text-slate-400 block uppercase">Volume</span>
-              <span className="font-semibold text-slate-900 font-mono">{activeDelivery.order?.volumeM3} m³</span>
+              <span className="text-[9px] text-ops-dim block uppercase">Volume</span>
+              <span className="font-bold text-white">{activeDelivery.order?.volumeM3} m³</span>
             </div>
             <div>
-              <span className="text-[10px] text-slate-400 block uppercase">Vehicle</span>
-              <span className="font-semibold text-slate-900 font-mono">{activeDelivery.vehicle?.code || 'VEH'}</span>
+              <span className="text-[9px] text-ops-dim block uppercase">Asset</span>
+              <span className="font-bold text-cyan-400">{activeDelivery.vehicle?.code || 'VEH'}</span>
             </div>
           </div>
 
           {/* Progressive Action Stepper */}
           <div className="pt-2 space-y-2">
-            <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-              Required Next Action
+            <h4 className="text-[11px] font-mono font-bold text-ops-dim uppercase tracking-wider">
+              Required In-Cab Action
             </h4>
 
             {activeDelivery.status === 'DISPATCHED' && (
               <button
                 onClick={() => handleAdvanceStatus('PICKED_UP')}
                 disabled={isUpdating}
-                className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-bold text-sm flex items-center justify-center gap-2 shadow-xs transition-colors disabled:opacity-50"
+                className="w-full py-3 bg-cyan-600 hover:bg-cyan-500 text-black rounded-lg font-mono font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-glow-cyan transition-all disabled:opacity-50"
               >
-                <Package className="w-4 h-4 text-orange-400" />
-                <span>1. Confirm Cargo Loaded & Picked Up</span>
+                <Package className="w-4 h-4" />
+                <span>1. CONFIRM CARGO LOADED & PICKED UP</span>
               </button>
             )}
 
@@ -259,10 +260,10 @@ export const DriverConsole: React.FC = () => {
               <button
                 onClick={() => handleAdvanceStatus('IN_TRANSIT')}
                 disabled={isUpdating}
-                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-sm flex items-center justify-center gap-2 shadow-xs transition-colors disabled:opacity-50"
+                className="w-full py-3 bg-sky-600 hover:bg-sky-500 text-black rounded-lg font-mono font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-glow-cyan transition-all disabled:opacity-50"
               >
                 <Navigation className="w-4 h-4" />
-                <span>2. Start Highway Corridor Transit</span>
+                <span>2. START HIGHWAY CORRIDOR TRANSIT</span>
               </button>
             )}
 
@@ -270,10 +271,10 @@ export const DriverConsole: React.FC = () => {
               <button
                 onClick={() => handleAdvanceStatus('OUT_FOR_DELIVERY')}
                 disabled={isUpdating}
-                className="w-full py-3 bg-blue-700 hover:bg-blue-800 text-white rounded-lg font-bold text-sm flex items-center justify-center gap-2 shadow-xs transition-colors disabled:opacity-50"
+                className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-mono font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-panel transition-all disabled:opacity-50"
               >
                 <Truck className="w-4 h-4" />
-                <span>3. Arrive in Destination Drop-off Zone</span>
+                <span>3. ARRIVE IN DESTINATION DROP-OFF ZONE</span>
               </button>
             )}
 
@@ -281,47 +282,48 @@ export const DriverConsole: React.FC = () => {
               <button
                 onClick={() => handleAdvanceStatus('DELIVERED')}
                 disabled={isUpdating}
-                className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-sm flex items-center justify-center gap-2 shadow-xs transition-colors disabled:opacity-50"
+                className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-black rounded-lg font-mono font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-glow-emerald transition-all disabled:opacity-50"
               >
-                <ShieldCheck className="w-4 h-4 text-emerald-200" />
-                <span>4. Complete Delivery & Sign Proof of Delivery</span>
+                <ShieldCheck className="w-4 h-4" />
+                <span>4. COMPLETE DELIVERY & SIGN PROOF OF DELIVERY (POD)</span>
               </button>
             )}
           </div>
         </div>
       ) : (
-        <div className="p-8 text-center bg-white border border-slate-200 rounded-lg shadow-2xs space-y-3">
-          <div className="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+        <div className="p-8 text-center bg-ops-surface border border-ops-border rounded-xl shadow-panel space-y-3">
+          <div className="w-12 h-12 rounded-full bg-ops-panel text-ops-dim flex items-center justify-center mx-auto border border-ops-border">
             <Truck className="w-6 h-6" />
           </div>
-          <h3 className="text-sm font-bold text-slate-800">No Active Shipments Assigned</h3>
-          <p className="text-xs text-slate-500 max-w-sm mx-auto">
+          <h3 className="text-sm font-mono font-bold text-white uppercase tracking-wider">No Active Shipments Assigned</h3>
+          <p className="text-xs text-ops-muted max-w-sm mx-auto font-sans">
             You are currently online. When dispatch assigns an order to your vehicle, the milestone instructions will appear here instantly.
           </p>
         </div>
       )}
 
       {/* Completed Trip History */}
-      <div className="p-5 bg-white border border-slate-200 rounded-lg shadow-2xs space-y-3">
-        <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">
+      <div className="p-5 bg-ops-surface border border-ops-border rounded-xl shadow-panel space-y-3">
+        <h3 className="text-xs font-mono font-bold text-ops-text uppercase tracking-wider border-b border-ops-border pb-2 flex items-center gap-2">
+          <span className="w-1.5 h-3 bg-cyan-400 rounded-xs"></span>
           Your Recent Completed Trips ({history.length})
         </h3>
 
-        <div className="divide-y divide-slate-100">
+        <div className="divide-y divide-ops-border/40">
           {history.length === 0 ? (
-            <p className="text-xs text-slate-400 py-4 text-center">No past completed trips on record.</p>
+            <p className="text-xs font-mono text-ops-dim py-4 text-center">No past completed trips on record.</p>
           ) : (
             history.slice(0, 5).map((h) => (
               <div key={h.id} className="py-2.5 flex items-center justify-between text-xs">
                 <div>
-                  <span className="font-mono font-bold text-slate-900 block">{h.trackingNumber}</span>
-                  <span className="text-slate-500 text-[11px] truncate max-w-xs block">
+                  <span className="font-mono font-bold text-cyan-400 block">#{h.trackingNumber}</span>
+                  <span className="text-ops-dim text-[11px] truncate max-w-xs block font-sans">
                     {h.order?.customerName} &bull; {h.order?.deliveryAddress}
                   </span>
                 </div>
-                <div className="text-right text-[11px]">
+                <div className="text-right text-[11px] font-mono">
                   <StatusBadge status={h.status} type="delivery" />
-                  <span className="text-slate-400 block mt-1 font-mono">
+                  <span className="text-ops-dim block mt-1">
                     {new Date(h.updatedAt || h.createdAt || Date.now()).toLocaleDateString('en-IN')}
                   </span>
                 </div>
@@ -337,17 +339,17 @@ export const DriverConsole: React.FC = () => {
         onClose={() => setIsSignModalOpen(false)}
         title="Capture Digital Proof of Delivery (POD)"
       >
-        <form onSubmit={handleCompleteDeliveryWithSignature} className="space-y-4 text-xs">
-          <div className="p-3 bg-emerald-50/60 border border-emerald-200 rounded-lg space-y-1">
-            <span className="text-xs font-bold text-emerald-900 block">Final Delivery Verification</span>
-            <p className="text-slate-600 text-[11px]">
+        <form onSubmit={handleCompleteDeliveryWithSignature} className="space-y-4 text-xs font-sans">
+          <div className="p-3 bg-emerald-950/30 border border-emerald-800/40 rounded-lg space-y-1">
+            <span className="text-xs font-mono font-bold text-emerald-300 block uppercase">Final Delivery Verification</span>
+            <p className="text-ops-dim text-[11px]">
               Please collect recipient full name and digital confirmation before releasing cargo.
             </p>
           </div>
 
           <div>
-            <label className="block text-slate-700 font-medium mb-1">
-              Recipient Name & Role <span className="text-rose-500">*</span>
+            <label className="block font-mono text-[11px] font-bold text-ops-dim uppercase mb-1">
+              Recipient Name & Role <span className="text-rose-400">*</span>
             </label>
             <input
               type="text"
@@ -355,35 +357,35 @@ export const DriverConsole: React.FC = () => {
               value={recipientName}
               onChange={(e) => setRecipientName(e.target.value)}
               placeholder="e.g., S. Deshmukh (Receiving Plant Manager)"
-              className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-xs font-mono"
+              className="w-full px-3 py-2 bg-ops-bg border border-ops-border rounded-lg text-xs font-mono text-ops-text focus:border-cyan-500"
             />
           </div>
 
           <div>
-            <label className="block text-slate-700 font-medium mb-1">Delivery Condition Notes</label>
+            <label className="block font-mono text-[11px] font-bold text-ops-dim uppercase mb-1">Delivery Condition Notes</label>
             <textarea
               rows={2}
               value={deliveryNotes}
               onChange={(e) => setDeliveryNotes(e.target.value)}
               placeholder="e.g., Cargo inspected, zero seal tampering, verified in full..."
-              className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-xs"
+              className="w-full px-3 py-2 bg-ops-bg border border-ops-border rounded-lg text-xs text-ops-text focus:border-cyan-500"
             ></textarea>
           </div>
 
-          <div className="flex justify-end gap-2 pt-3 border-t border-slate-200">
+          <div className="flex justify-end gap-2 pt-3 border-t border-ops-border">
             <button
               type="button"
               onClick={() => setIsSignModalOpen(false)}
-              className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 rounded-md font-medium"
+              className="px-3.5 py-1.5 bg-ops-panel hover:bg-ops-panelHover border border-ops-border text-ops-muted hover:text-ops-text rounded-md font-mono font-semibold"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isUpdating || !recipientName.trim()}
-              className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md font-semibold shadow-2xs disabled:opacity-50"
+              className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-black font-mono font-bold rounded-md uppercase tracking-wider shadow-glow-emerald disabled:opacity-50"
             >
-              {isUpdating ? 'Recording...' : 'Confirm Delivery & Sign POD'}
+              {isUpdating ? 'RECORDING...' : 'CONFIRM DELIVERY & RECORD POD'}
             </button>
           </div>
         </form>

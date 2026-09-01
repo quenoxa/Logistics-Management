@@ -11,6 +11,7 @@ import {
   Filter,
   RotateCw,
   Plus,
+  Truck,
 } from 'lucide-react';
 import { deliveriesApi, driversApi, vehiclesApi } from '../services/api';
 import { Delivery, Driver, Vehicle } from '../../shared/types';
@@ -65,61 +66,61 @@ export const Deliveries: React.FC = () => {
 
   const columns: Column<Delivery>[] = [
     {
-      header: 'Tracking #',
+      header: 'TRACKING # / ORDER',
       accessor: 'trackingNumber',
       sortable: true,
       render: (d) => (
         <div>
-          <span className="font-mono font-bold text-slate-900 hover:text-orange-600 transition-colors">
-            {d.trackingNumber}
+          <span className="font-mono font-bold text-cyan-400 hover:text-cyan-300 transition-colors">
+            #{d.trackingNumber}
           </span>
-          <div className="text-[11px] text-slate-500 font-mono">{d.order?.orderNumber}</div>
+          <div className="text-[10px] text-ops-dim font-mono mt-0.5">ORD: {d.order?.orderNumber}</div>
         </div>
       ),
     },
     {
-      header: 'Customer & Destination',
+      header: 'CUSTOMER & DESTINATION',
       accessor: 'orderId',
       render: (d) => (
         <div className="max-w-xs">
-          <div className="font-semibold text-slate-900 truncate">{d.order?.customerName}</div>
-          <div className="text-[11px] text-slate-500 flex items-center gap-1 truncate mt-0.5">
-            <MapPin className="w-3 h-3 text-emerald-600 shrink-0" />
+          <div className="font-semibold text-ops-text truncate">{d.order?.customerName}</div>
+          <div className="text-[11px] text-ops-dim flex items-center gap-1 truncate mt-0.5">
+            <MapPin className="w-3 h-3 text-emerald-400 shrink-0" />
             <span className="truncate">{d.order?.deliveryAddress}</span>
           </div>
         </div>
       ),
     },
     {
-      header: 'Driver & Vehicle',
+      header: 'ASSIGNED CREW & ASSET',
       render: (d) => (
-        <div className="text-xs">
-          <div className="text-slate-900 font-medium">
-            {d.driver ? `${d.driver.firstName} ${d.driver.lastName}` : <span className="text-slate-400">Unassigned</span>}
+        <div className="text-xs font-mono">
+          <div className="text-ops-text font-medium">
+            {d.driver ? `${d.driver.firstName} ${d.driver.lastName}` : <span className="text-ops-dim">Unassigned</span>}
           </div>
-          <div className="text-[11px] text-slate-500">
-            {d.vehicle ? `${d.vehicle.code} (${d.vehicle.licensePlate})` : 'No vehicle'}
+          <div className="text-[10px] text-ops-dim">
+            {d.vehicle ? `${d.vehicle.code} (${d.vehicle.licensePlate})` : 'No asset linked'}
           </div>
         </div>
       ),
     },
     {
-      header: 'Progress',
+      header: 'ROUTE PROGRESS',
       accessor: 'progressPercent',
       sortable: true,
       render: (d) => (
         <div className="w-28 space-y-1">
-          <div className="flex justify-between text-[11px] font-medium text-slate-600">
-            <span>{d.status === 'DELIVERED' ? 'Complete' : `${d.progressPercent}%`}</span>
+          <div className="flex justify-between text-[10px] font-mono text-ops-dim">
+            <span>{d.status === 'DELIVERED' ? '100% COMPLETE' : `${d.progressPercent}%`}</span>
           </div>
-          <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden border border-slate-200">
+          <div className="w-full bg-ops-bg h-1.5 rounded-full overflow-hidden border border-ops-border">
             <div
               className={`h-full rounded-full transition-all duration-300 ${
                 d.status === 'DELIVERED'
-                  ? 'bg-emerald-600'
+                  ? 'bg-emerald-500 shadow-glow-emerald'
                   : d.status === 'DELAYED'
-                  ? 'bg-amber-500'
-                  : 'bg-blue-600'
+                  ? 'bg-amber-500 shadow-glow-amber'
+                  : 'bg-cyan-500 shadow-glow-cyan'
               }`}
               style={{ width: `${d.progressPercent}%` }}
             ></div>
@@ -128,13 +129,13 @@ export const Deliveries: React.FC = () => {
       ),
     },
     {
-      header: 'Status',
+      header: 'STATUS',
       accessor: 'status',
       sortable: true,
       render: (d) => <StatusBadge status={d.status} type="delivery" />,
     },
     {
-      header: 'Priority',
+      header: 'PRIORITY',
       render: (d) => <StatusBadge status={d.order?.priority || 'MEDIUM'} type="priority" />,
     },
     {
@@ -146,7 +147,7 @@ export const Deliveries: React.FC = () => {
             e.stopPropagation();
             navigate(`/deliveries/${d.id}`);
           }}
-          className="p-1.5 rounded-md hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition-colors"
+          className="p-1.5 rounded-md hover:bg-ops-panel text-ops-dim hover:text-cyan-400 border border-transparent hover:border-ops-border transition-colors"
           title="Open delivery details"
         >
           <ArrowRight className="w-4 h-4" />
@@ -157,51 +158,52 @@ export const Deliveries: React.FC = () => {
 
   return (
     <div className="space-y-5 pb-12">
-      {/* Page Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-4">
+      {/* Page Command Header */}
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-ops-border pb-4">
         <div>
-          <div className="flex items-center space-x-2">
-            <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-              Delivery Manifests & Trips
+          <div className="flex items-center space-x-2.5">
+            <h1 className="text-xl font-bold font-mono tracking-tight text-white uppercase flex items-center gap-2">
+              <span className="w-2 h-4 bg-cyan-400 rounded-xs"></span>
+              Shipment Manifests & Trips
             </h1>
-            <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200 text-xs font-semibold">
-              {deliveries.length} Total
+            <span className="px-2.5 py-0.5 rounded-md bg-ops-surface border border-ops-border text-ops-muted text-xs font-mono font-bold">
+              {deliveries.length} RECORDED
             </span>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-ops-muted mt-1 font-sans">
             End-to-end shipment lifecycle tracking, assigned vehicles, drivers, and digital proof of delivery
           </p>
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2.5">
           <button
             onClick={() => fetchData(true)}
-            className="p-1.5 rounded-md bg-white hover:bg-slate-50 border border-slate-300 text-slate-600 shadow-2xs transition-colors"
+            className="p-2 rounded-md bg-ops-surface hover:bg-ops-panel border border-ops-border text-ops-muted hover:text-ops-text transition-colors shadow-panel"
             title="Refresh list"
           >
             <RotateCw className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => navigate('/orders')}
-            className="px-3.5 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold inline-flex items-center gap-1.5 shadow-2xs transition-colors"
+            className="px-4 py-1.5 rounded-md bg-cyan-600 hover:bg-cyan-500 text-black text-xs font-mono font-bold uppercase tracking-wider inline-flex items-center gap-1.5 shadow-glow-cyan transition-all"
           >
             <Plus className="w-4 h-4" />
-            <span>Dispatch Shipment</span>
+            <span>DISPATCH SHIPMENT</span>
           </button>
         </div>
       </div>
 
       {/* Filter Toolbar */}
-      <div className="flex flex-wrap items-center gap-2.5 p-3 rounded-lg bg-white border border-slate-200 shadow-2xs">
-        <div className="flex items-center space-x-1.5 text-xs text-slate-500 mr-2">
-          <Filter className="w-3.5 h-3.5" />
-          <span className="font-semibold text-slate-700">Filter By:</span>
+      <div className="flex flex-wrap items-center gap-2.5 p-3 rounded-lg bg-ops-surface border border-ops-border shadow-panel">
+        <div className="flex items-center space-x-1.5 text-xs text-ops-dim mr-2 font-mono">
+          <Filter className="w-3.5 h-3.5 text-cyan-400" />
+          <span className="font-bold text-ops-text uppercase">FILTERS:</span>
         </div>
 
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-md text-xs font-medium text-slate-700 focus:outline-hidden focus:ring-1 focus:ring-slate-400"
+          className="px-2.5 py-1.5 bg-ops-bg border border-ops-border rounded-md text-xs font-mono font-medium text-ops-text focus:outline-hidden focus:border-cyan-500"
         >
           <option value="ALL">All Statuses</option>
           <option value="DISPATCHED">Dispatched</option>
@@ -215,7 +217,7 @@ export const Deliveries: React.FC = () => {
         <select
           value={priorityFilter}
           onChange={(e) => setPriorityFilter(e.target.value)}
-          className="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-md text-xs font-medium text-slate-700 focus:outline-hidden focus:ring-1 focus:ring-slate-400"
+          className="px-2.5 py-1.5 bg-ops-bg border border-ops-border rounded-md text-xs font-mono font-medium text-ops-text focus:outline-hidden focus:border-cyan-500"
         >
           <option value="ALL">All Priorities</option>
           <option value="CRITICAL">Critical</option>
@@ -227,12 +229,12 @@ export const Deliveries: React.FC = () => {
         <select
           value={driverFilter}
           onChange={(e) => setDriverFilter(e.target.value)}
-          className="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-md text-xs font-medium text-slate-700 focus:outline-hidden focus:ring-1 focus:ring-slate-400"
+          className="px-2.5 py-1.5 bg-ops-bg border border-ops-border rounded-md text-xs font-mono font-medium text-ops-text focus:outline-hidden focus:border-cyan-500"
         >
           <option value="ALL">All Drivers</option>
           {drivers.map((d) => (
             <option key={d.id} value={d.id}>
-              {d.firstName} {d.lastName} ({d.driverCode})
+              {d.firstName} {d.lastName} ({d.driverCode || d.code})
             </option>
           ))}
         </select>
@@ -240,7 +242,7 @@ export const Deliveries: React.FC = () => {
         <select
           value={vehicleFilter}
           onChange={(e) => setVehicleFilter(e.target.value)}
-          className="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-md text-xs font-medium text-slate-700 focus:outline-hidden focus:ring-1 focus:ring-slate-400"
+          className="px-2.5 py-1.5 bg-ops-bg border border-ops-border rounded-md text-xs font-mono font-medium text-ops-text focus:outline-hidden focus:border-cyan-500"
         >
           <option value="ALL">All Vehicles</option>
           {vehicles.map((v) => (
@@ -258,9 +260,9 @@ export const Deliveries: React.FC = () => {
               setDriverFilter('ALL');
               setVehicleFilter('ALL');
             }}
-            className="text-xs text-orange-600 hover:text-orange-700 font-medium px-2 py-1"
+            className="text-xs font-mono text-cyan-400 hover:text-cyan-300 font-semibold px-2 py-1"
           >
-            Reset Filters
+            [RESET FILTERS]
           </button>
         )}
       </div>

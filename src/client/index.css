@@ -4,40 +4,45 @@
 
 @layer base {
   body {
-    @apply bg-[#f8fafc] text-slate-900 font-sans antialiased selection:bg-orange-500 selection:text-white;
+    @apply bg-ops-bg text-ops-text font-sans antialiased selection:bg-ops-accent selection:text-black;
   }
 }
 
-/* Custom Tactical Scrollbar */
+/* Custom Tactical Dark Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #080b11;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #1f2937;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #374151;
 }
 
-/* Leaflet Clean Map Styling */
+/* Leaflet Dark Command Map Styling */
 .leaflet-container {
-  background-color: #f8fafc !important;
+  background-color: #0b0f17 !important;
   font-family: inherit;
 }
 
+/* Dark mode tiles filter for OpenStreetMap */
+.leaflet-tile-pane {
+  filter: brightness(0.7) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.75);
+}
+
 .leaflet-popup-content-wrapper, .leaflet-popup-tip {
-  background: #ffffff !important;
-  color: #0f172a !important;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  background: #111827 !important;
+  color: #f3f4f6 !important;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.7);
   border-radius: 8px;
 }
 
@@ -51,4 +56,24 @@
 .font-mono-numbers {
   font-family: 'JetBrains Mono', monospace;
   font-feature-settings: "tnum" 1, "zero" 1;
+}
+
+/* Radar pulse animation */
+@keyframes radar-pulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(6, 182, 212, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 10px rgba(6, 182, 212, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(6, 182, 212, 0);
+  }
+}
+
+.radar-ping {
+  animation: radar-pulse 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
 }

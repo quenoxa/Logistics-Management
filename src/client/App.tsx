@@ -26,10 +26,12 @@ const ProtectedLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-600 font-sans">
+      <div className="min-h-screen bg-ops-bg flex items-center justify-center text-ops-text font-sans">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 rounded-full border-2 border-slate-300 border-t-orange-600 animate-spin"></div>
-          <span className="text-xs font-medium text-slate-500">Loading workspace...</span>
+          <div className="w-9 h-9 rounded-full border-2 border-ops-border border-t-cyan-400 animate-spin"></div>
+          <span className="text-xs font-mono tracking-wider text-cyan-400 font-semibold uppercase">
+            Initializing Command Terminal...
+          </span>
         </div>
       </div>
     );
@@ -40,11 +42,11 @@ const ProtectedLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50 text-slate-900 selection:bg-orange-500 selection:text-white">
+    <div className="flex min-h-screen bg-ops-bg text-ops-text selection:bg-ops-accent selection:text-black">
       <Sidebar isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
       <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
         <Header onOpenMobileMenu={() => setIsMobileMenuOpen(true)} />
-        <main className="flex-1 p-4 md:p-6 lg:p-7 max-w-7xl w-full mx-auto">
+        <main className="flex-1 p-4 md:p-6 lg:p-7 max-w-[1600px] w-full mx-auto">
           {children}
         </main>
       </div>

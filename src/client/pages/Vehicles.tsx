@@ -101,7 +101,7 @@ export const Vehicles: React.FC = () => {
     e.preventDefault();
     try {
       const created = await vehiclesApi.create(newVehicle as any);
-      success('Vehicle Registered', `Vehicle asset ${created.code} (${created.licensePlate}) added.`);
+      success('VEHICLE REGISTERED', `Asset ${created.code} (${created.licensePlate}) enrolled into fleet.`);
       setIsAddModalOpen(false);
       fetchData(false);
       setNewVehicle({
@@ -131,10 +131,9 @@ export const Vehicles: React.FC = () => {
 
     try {
       await vehiclesApi.addMaintenanceLog(selectedVehicle.id, newLog);
-      success('Maintenance Logged', `Service recorded for ${selectedVehicle.code}.`);
+      success('MAINTENANCE LOGGED', `Service event confirmed for ${selectedVehicle.code}.`);
       setIsMaintenanceModalOpen(false);
       fetchData(false);
-      // Refresh selected vehicle details
       const updated = await vehiclesApi.getById(selectedVehicle.id);
       setSelectedVehicle(updated);
     } catch (err: any) {
@@ -147,7 +146,7 @@ export const Vehicles: React.FC = () => {
     try {
       setIsDeleting(true);
       await vehiclesApi.delete(deleteTarget.id);
-      success('Vehicle Removed', `Vehicle ${deleteTarget.code} deleted from fleet database.`);
+      success('VEHICLE DECOMMISSIONED', `Asset ${deleteTarget.code} purged from fleet inventory.`);
       setDeleteTarget(null);
       if (selectedVehicle?.id === deleteTarget.id) {
         setIsDetailsOpen(false);
@@ -163,75 +162,75 @@ export const Vehicles: React.FC = () => {
 
   const columns: Column<Vehicle>[] = [
     {
-      header: 'Vehicle Code',
+      header: 'ASSET CODE / REG',
       accessor: 'code',
       sortable: true,
       render: (v) => (
         <div>
-          <span className="font-mono font-bold text-slate-900">{v.code}</span>
-          <div className="text-[11px] text-slate-500 font-mono">{v.licensePlate}</div>
+          <span className="font-mono font-bold text-cyan-400">{v.code}</span>
+          <div className="text-[10px] text-ops-dim font-mono mt-0.5">{v.licensePlate}</div>
         </div>
       ),
     },
     {
-      header: 'Make & Model',
+      header: 'CHASSIS & CLASSIFICATION',
       accessor: 'model',
       sortable: true,
       render: (v) => (
         <div>
-          <span className="font-semibold text-slate-900">{v.make} {v.model}</span>
-          <div className="text-[11px] text-slate-500">{v.year} &bull; {v.type.replace(/_/g, ' ')}</div>
+          <span className="font-semibold text-white">{v.make} {v.model}</span>
+          <div className="text-[10px] text-ops-dim font-mono">{v.year} &bull; {v.type.replace(/_/g, ' ')}</div>
         </div>
       ),
     },
     {
-      header: 'Capacity Specs',
+      header: 'PAYLOAD SPECS',
       render: (v) => (
-        <div className="text-xs">
-          <span className="font-semibold text-slate-800">{v.maxPayloadKg.toLocaleString()} kg</span>
-          <div className="text-[11px] text-slate-500">{v.maxVolumeM3} m³ volume</div>
+        <div className="text-xs font-mono">
+          <span className="font-bold text-white">{v.maxPayloadKg.toLocaleString()} kg</span>
+          <div className="text-[10px] text-ops-dim">{v.maxVolumeM3} m³ volume</div>
         </div>
       ),
     },
     {
-      header: 'Fuel & Odometer',
+      header: 'FUEL & ODOMETER',
       render: (v) => (
-        <div className="text-xs">
-          <div className="flex items-center gap-1 font-semibold text-slate-800">
-            <Fuel className="w-3 h-3 text-slate-500" />
+        <div className="text-xs font-mono">
+          <div className="flex items-center gap-1 font-bold text-cyan-400">
+            <Fuel className="w-3.5 h-3.5 text-cyan-400" />
             <span>{v.currentFuelPercent}% {v.fuelType}</span>
           </div>
-          <div className="text-[11px] text-slate-500 font-mono">{v.currentMileageKm.toLocaleString()} km</div>
+          <div className="text-[10px] text-ops-dim">{v.currentMileageKm.toLocaleString()} km</div>
         </div>
       ),
     },
     {
-      header: 'Status',
+      header: 'STATUS',
       accessor: 'status',
       sortable: true,
       render: (v) => <StatusBadge status={v.status} type="vehicle" />,
     },
     {
-      header: 'Actions',
+      header: 'ACTIONS',
       className: 'text-right',
       render: (v) => (
-        <div className="flex items-center justify-end gap-1">
+        <div className="flex items-center justify-end gap-1.5 font-mono">
           <button
             onClick={(e) => {
               e.stopPropagation();
               setSelectedVehicle(v);
               setIsDetailsOpen(true);
             }}
-            className="px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100 rounded transition-colors"
+            className="px-2.5 py-1 text-xs font-bold text-cyan-400 hover:text-cyan-300 bg-ops-panel hover:bg-ops-panelHover border border-ops-border rounded transition-all shadow-panel"
           >
-            Details
+            SPECS
           </button>
           <button
             onClick={(e) => {
               e.stopPropagation();
               setDeleteTarget(v);
             }}
-            className="p-1 text-slate-400 hover:text-rose-600 rounded transition-colors"
+            className="p-1 text-ops-dim hover:text-rose-400 rounded transition-colors"
             title="Delete vehicle"
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -243,51 +242,52 @@ export const Vehicles: React.FC = () => {
 
   return (
     <div className="space-y-5 pb-12">
-      {/* Page Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-4">
+      {/* Page Command Header */}
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-ops-border pb-4">
         <div>
-          <div className="flex items-center space-x-2">
-            <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-              Commercial Fleet Inventory
+          <div className="flex items-center space-x-2.5">
+            <h1 className="text-xl font-bold font-mono tracking-tight text-white uppercase flex items-center gap-2">
+              <span className="w-2 h-4 bg-cyan-400 rounded-xs"></span>
+              Fleet Asset Inventory & Telematics
             </h1>
-            <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200 text-xs font-semibold">
-              {vehicles.length} Assets
+            <span className="px-2.5 py-0.5 rounded-md bg-ops-surface border border-ops-border text-ops-muted text-xs font-mono font-bold">
+              {vehicles.length} ASSETS
             </span>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-ops-muted mt-1 font-sans">
             Commercial trailers, medium carriers, payload capacities, telemetry health, and depot maintenance logs
           </p>
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2.5">
           <button
             onClick={() => fetchData(true)}
-            className="p-1.5 rounded-md bg-white hover:bg-slate-50 border border-slate-300 text-slate-600 shadow-2xs transition-colors"
+            className="p-2 rounded-md bg-ops-surface hover:bg-ops-panel border border-ops-border text-ops-muted hover:text-ops-text transition-colors shadow-panel"
             title="Refresh list"
           >
             <RotateCw className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="px-3.5 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold inline-flex items-center gap-1.5 shadow-2xs transition-colors"
+            className="px-4 py-1.5 rounded-md bg-cyan-600 hover:bg-cyan-500 text-black text-xs font-mono font-bold uppercase tracking-wider inline-flex items-center gap-1.5 shadow-glow-cyan transition-all"
           >
             <Plus className="w-4 h-4" />
-            <span>Add Vehicle Asset</span>
+            <span>ENROLL ASSET</span>
           </button>
         </div>
       </div>
 
       {/* Filter Toolbar */}
-      <div className="flex flex-wrap items-center gap-2.5 p-3 rounded-lg bg-white border border-slate-200 shadow-2xs">
-        <div className="flex items-center space-x-1.5 text-xs text-slate-500 mr-2">
-          <Filter className="w-3.5 h-3.5" />
-          <span className="font-semibold text-slate-700">Filter By:</span>
+      <div className="flex flex-wrap items-center gap-2.5 p-3 rounded-lg bg-ops-surface border border-ops-border shadow-panel">
+        <div className="flex items-center space-x-1.5 text-xs text-ops-dim mr-2 font-mono">
+          <Filter className="w-3.5 h-3.5 text-cyan-400" />
+          <span className="font-bold text-ops-text uppercase">FILTERS:</span>
         </div>
 
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-md text-xs font-medium text-slate-700 focus:outline-hidden focus:ring-1 focus:ring-slate-400"
+          className="px-2.5 py-1.5 bg-ops-bg border border-ops-border rounded-md text-xs font-mono font-medium text-ops-text focus:border-cyan-500"
         >
           <option value="ALL">All Operational Statuses</option>
           <option value="ACTIVE">Active (Available)</option>
@@ -299,7 +299,7 @@ export const Vehicles: React.FC = () => {
         <select
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value)}
-          className="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-md text-xs font-medium text-slate-700 focus:outline-hidden focus:ring-1 focus:ring-slate-400"
+          className="px-2.5 py-1.5 bg-ops-bg border border-ops-border rounded-md text-xs font-mono font-medium text-ops-text focus:border-cyan-500"
         >
           <option value="ALL">All Vehicle Types</option>
           <option value="SEMI_TRAILER">Heavy Duty Semi-Trailer</option>
@@ -315,9 +315,9 @@ export const Vehicles: React.FC = () => {
               setStatusFilter('ALL');
               setTypeFilter('ALL');
             }}
-            className="text-xs text-orange-600 hover:text-orange-700 font-medium px-2 py-1"
+            className="text-xs font-mono text-cyan-400 hover:text-cyan-300 font-semibold px-2 py-1"
           >
-            Reset Filters
+            [RESET FILTERS]
           </button>
         )}
       </div>
@@ -347,14 +347,14 @@ export const Vehicles: React.FC = () => {
       <Modal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
-        title="Add Commercial Vehicle Asset"
+        title="Enroll Commercial Vehicle Asset"
         maxWidth="lg"
       >
-        <form onSubmit={handleCreateVehicle} className="space-y-4 text-xs">
+        <form onSubmit={handleCreateVehicle} className="space-y-4 text-xs font-sans">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
-              <label className="block text-slate-700 font-medium mb-1">
-                Vehicle Fleet Code <span className="text-rose-500">*</span>
+              <label className="block font-mono text-[11px] font-bold text-ops-dim uppercase mb-1">
+                Vehicle Fleet Code <span className="text-rose-400">*</span>
               </label>
               <input
                 type="text"
@@ -362,12 +362,12 @@ export const Vehicles: React.FC = () => {
                 value={newVehicle.code}
                 onChange={(e) => setNewVehicle({ ...newVehicle, code: e.target.value.toUpperCase() })}
                 placeholder="e.g., TRK-105"
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-xs font-mono"
+                className="w-full px-3 py-2 bg-ops-bg border border-ops-border rounded-lg text-xs font-mono text-ops-text focus:border-cyan-500"
               />
             </div>
             <div>
-              <label className="block text-slate-700 font-medium mb-1">
-                License Plate <span className="text-rose-500">*</span>
+              <label className="block font-mono text-[11px] font-bold text-ops-dim uppercase mb-1">
+                License Plate <span className="text-rose-400">*</span>
               </label>
               <input
                 type="text"
@@ -375,63 +375,63 @@ export const Vehicles: React.FC = () => {
                 value={newVehicle.licensePlate}
                 onChange={(e) => setNewVehicle({ ...newVehicle, licensePlate: e.target.value.toUpperCase() })}
                 placeholder="e.g., MH-12-TR-9921"
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-xs font-mono"
+                className="w-full px-3 py-2 bg-ops-bg border border-ops-border rounded-lg text-xs font-mono text-ops-text focus:border-cyan-500"
               />
             </div>
             <div>
-              <label className="block text-slate-700 font-medium mb-1">VIN / Chassis Number</label>
+              <label className="block font-mono text-[11px] font-bold text-ops-dim uppercase mb-1">VIN / Chassis</label>
               <input
                 type="text"
                 value={newVehicle.vin}
                 onChange={(e) => setNewVehicle({ ...newVehicle, vin: e.target.value })}
                 placeholder="e.g., MAT8271891726354"
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-xs font-mono"
+                className="w-full px-3 py-2 bg-ops-bg border border-ops-border rounded-lg text-xs font-mono text-ops-text focus:border-cyan-500"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
-              <label className="block text-slate-700 font-medium mb-1">Manufacturer Make</label>
+              <label className="block font-mono text-[11px] font-bold text-ops-dim uppercase mb-1">Manufacturer Make</label>
               <input
                 type="text"
                 required
                 value={newVehicle.make}
                 onChange={(e) => setNewVehicle({ ...newVehicle, make: e.target.value })}
                 placeholder="e.g., Tata Motors"
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-xs"
+                className="w-full px-3 py-2 bg-ops-bg border border-ops-border rounded-lg text-xs text-ops-text focus:border-cyan-500"
               />
             </div>
             <div>
-              <label className="block text-slate-700 font-medium mb-1">Model Name</label>
+              <label className="block font-mono text-[11px] font-bold text-ops-dim uppercase mb-1">Model Name</label>
               <input
                 type="text"
                 required
                 value={newVehicle.model}
                 onChange={(e) => setNewVehicle({ ...newVehicle, model: e.target.value })}
                 placeholder="e.g., Prima 5530.S"
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-xs"
+                className="w-full px-3 py-2 bg-ops-bg border border-ops-border rounded-lg text-xs text-ops-text focus:border-cyan-500"
               />
             </div>
             <div>
-              <label className="block text-slate-700 font-medium mb-1">Manufacturing Year</label>
+              <label className="block font-mono text-[11px] font-bold text-ops-dim uppercase mb-1">Manufacturing Year</label>
               <input
                 type="number"
                 required
                 value={newVehicle.year}
                 onChange={(e) => setNewVehicle({ ...newVehicle, year: Number(e.target.value) })}
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-xs font-mono"
+                className="w-full px-3 py-2 bg-ops-bg border border-ops-border rounded-lg text-xs font-mono text-ops-text focus:border-cyan-500"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
-              <label className="block text-slate-700 font-medium mb-1">Classification Type</label>
+              <label className="block font-mono text-[11px] font-bold text-ops-dim uppercase mb-1">Classification</label>
               <select
                 value={newVehicle.type}
                 onChange={(e) => setNewVehicle({ ...newVehicle, type: e.target.value })}
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-xs"
+                className="w-full px-3 py-2 bg-ops-bg border border-ops-border rounded-lg text-xs font-mono text-ops-text focus:border-cyan-500"
               >
                 <option value="SEMI_TRAILER">Heavy Duty Semi-Trailer</option>
                 <option value="MEDIUM_DUTY">Medium Duty Box Truck</option>
@@ -441,40 +441,40 @@ export const Vehicles: React.FC = () => {
               </select>
             </div>
             <div>
-              <label className="block text-slate-700 font-medium mb-1">Max Payload (kg)</label>
+              <label className="block font-mono text-[11px] font-bold text-ops-dim uppercase mb-1">Max Payload (kg)</label>
               <input
                 type="number"
                 required
                 value={newVehicle.maxPayloadKg}
                 onChange={(e) => setNewVehicle({ ...newVehicle, maxPayloadKg: Number(e.target.value) })}
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-xs font-mono"
+                className="w-full px-3 py-2 bg-ops-bg border border-ops-border rounded-lg text-xs font-mono text-ops-text focus:border-cyan-500"
               />
             </div>
             <div>
-              <label className="block text-slate-700 font-medium mb-1">Max Volume (m³)</label>
+              <label className="block font-mono text-[11px] font-bold text-ops-dim uppercase mb-1">Max Volume (m³)</label>
               <input
                 type="number"
                 required
                 value={newVehicle.maxVolumeM3}
                 onChange={(e) => setNewVehicle({ ...newVehicle, maxVolumeM3: Number(e.target.value) })}
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-xs font-mono"
+                className="w-full px-3 py-2 bg-ops-bg border border-ops-border rounded-lg text-xs font-mono text-ops-text focus:border-cyan-500"
               />
             </div>
           </div>
 
-          <div className="flex justify-end gap-2 pt-3 border-t border-slate-200">
+          <div className="flex justify-end gap-2 pt-3 border-t border-ops-border">
             <button
               type="button"
               onClick={() => setIsAddModalOpen(false)}
-              className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 rounded-md font-medium"
+              className="px-3.5 py-1.5 bg-ops-panel hover:bg-ops-panelHover border border-ops-border text-ops-muted hover:text-ops-text rounded-md font-mono font-semibold"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-md font-semibold shadow-2xs"
+              className="px-4 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-black font-mono font-bold rounded-md uppercase tracking-wider shadow-glow-cyan"
             >
-              Register Vehicle
+              Register Asset
             </button>
           </div>
         </form>
@@ -488,79 +488,79 @@ export const Vehicles: React.FC = () => {
           title={`Vehicle Specs & Logs — ${selectedVehicle.code}`}
           maxWidth="lg"
         >
-          <div className="space-y-4 text-xs">
+          <div className="space-y-4 text-xs font-sans">
             {/* Spec Highlights */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3 bg-slate-50 border border-slate-200 rounded-lg">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3 bg-ops-bg border border-ops-border rounded-lg font-mono">
               <div>
-                <span className="text-[11px] text-slate-400 block font-medium">Status</span>
+                <span className="text-[10px] text-ops-dim block uppercase">Status</span>
                 <StatusBadge status={selectedVehicle.status} type="vehicle" />
               </div>
               <div>
-                <span className="text-[11px] text-slate-400 block font-medium">Payload Limit</span>
-                <span className="font-semibold text-slate-900">{selectedVehicle.maxPayloadKg.toLocaleString()} kg</span>
+                <span className="text-[10px] text-ops-dim block uppercase">Payload Limit</span>
+                <span className="font-bold text-white">{selectedVehicle.maxPayloadKg.toLocaleString()} kg</span>
               </div>
               <div>
-                <span className="text-[11px] text-slate-400 block font-medium">Odometer</span>
-                <span className="font-semibold text-slate-900 font-mono">{selectedVehicle.currentMileageKm.toLocaleString()} km</span>
+                <span className="text-[10px] text-ops-dim block uppercase">Odometer</span>
+                <span className="font-bold text-cyan-400">{selectedVehicle.currentMileageKm.toLocaleString()} km</span>
               </div>
               <div>
-                <span className="text-[11px] text-slate-400 block font-medium">Fuel Level</span>
-                <span className="font-semibold text-slate-900">{selectedVehicle.currentFuelPercent}%</span>
+                <span className="text-[10px] text-ops-dim block uppercase">Fuel Level</span>
+                <span className="font-bold text-emerald-400">{selectedVehicle.currentFuelPercent}%</span>
               </div>
             </div>
 
             {/* Maintenance History Section */}
             <div>
-              <div className="flex items-center justify-between pb-2 border-b border-slate-200">
-                <h4 className="font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                  <Wrench className="w-3.5 h-3.5 text-slate-500" />
+              <div className="flex items-center justify-between pb-2 border-b border-ops-border">
+                <h4 className="font-mono font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                  <Wrench className="w-3.5 h-3.5 text-cyan-400" />
                   <span>Depot Service & Maintenance History</span>
                 </h4>
                 <button
                   onClick={() => setIsMaintenanceModalOpen(true)}
-                  className="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium rounded shadow-2xs transition-colors"
+                  className="px-3 py-1 bg-cyan-600 hover:bg-cyan-500 text-black text-xs font-mono font-bold uppercase rounded shadow-glow-cyan transition-all"
                 >
-                  + Record Service
+                  + RECORD SERVICE
                 </button>
               </div>
 
-              <div className="divide-y divide-slate-100 max-h-48 overflow-y-auto mt-2">
+              <div className="divide-y divide-ops-border/40 max-h-48 overflow-y-auto mt-2">
                 {selectedVehicle.maintenanceLogs && selectedVehicle.maintenanceLogs.length > 0 ? (
                   selectedVehicle.maintenanceLogs.map((log) => (
-                    <div key={log.id} className="py-2 flex items-center justify-between text-xs">
+                    <div key={log.id} className="py-2.5 flex items-center justify-between text-xs">
                       <div>
-                        <span className="font-semibold text-slate-800 block">
+                        <span className="font-mono font-bold text-white block">
                           {log.serviceType.replace(/_/g, ' ')} &bull; ₹{log.cost.toLocaleString()}
                         </span>
-                        <span className="text-slate-500 text-[11px]">{log.description || 'Routine service'}</span>
+                        <span className="text-ops-dim text-[11px]">{log.description || 'Routine scheduled bay service'}</span>
                       </div>
-                      <div className="text-right text-[11px] text-slate-400">
+                      <div className="text-right text-[10px] text-ops-dim font-mono">
                         <span>{new Date(log.performedAt || log.createdAt).toLocaleDateString('en-IN')}</span>
-                        <span className="block font-mono">{log.odometerKm} km</span>
+                        <span className="block text-cyan-400">{log.odometerKm} km</span>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <p className="text-slate-400 text-center py-6">No maintenance logs recorded for this vehicle.</p>
+                  <p className="text-ops-dim text-center py-6 font-mono text-xs">No maintenance logs recorded for this vehicle asset.</p>
                 )}
               </div>
             </div>
 
-            <div className="flex justify-between items-center pt-3 border-t border-slate-200">
+            <div className="flex justify-between items-center pt-3 border-t border-ops-border">
               <button
                 type="button"
                 onClick={() => {
                   setDeleteTarget(selectedVehicle);
                 }}
-                className="text-xs text-rose-600 hover:text-rose-700 font-medium inline-flex items-center gap-1"
+                className="text-xs font-mono text-rose-400 hover:text-rose-300 font-bold uppercase inline-flex items-center gap-1"
               >
                 <Trash2 className="w-3.5 h-3.5" />
-                <span>Delete Asset</span>
+                <span>PURGE ASSET</span>
               </button>
               <button
                 type="button"
                 onClick={() => setIsDetailsOpen(false)}
-                className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 rounded-md font-medium"
+                className="px-3.5 py-1.5 bg-ops-panel hover:bg-ops-panelHover border border-ops-border text-ops-muted hover:text-ops-text rounded-md font-mono font-semibold"
               >
                 Close
               </button>
@@ -576,13 +576,13 @@ export const Vehicles: React.FC = () => {
           onClose={() => setIsMaintenanceModalOpen(false)}
           title={`Log Maintenance — ${selectedVehicle.code}`}
         >
-          <form onSubmit={handleAddMaintenance} className="space-y-4 text-xs">
+          <form onSubmit={handleAddMaintenance} className="space-y-4 text-xs font-sans">
             <div>
-              <label className="block text-slate-700 font-medium mb-1">Service Type</label>
+              <label className="block font-mono text-[11px] font-bold text-ops-dim uppercase mb-1">Service Type</label>
               <select
                 value={newLog.serviceType}
                 onChange={(e) => setNewLog({ ...newLog, serviceType: e.target.value })}
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-xs"
+                className="w-full px-3 py-2 bg-ops-bg border border-ops-border rounded-lg text-xs font-mono text-ops-text focus:border-cyan-500"
               >
                 <option value="OIL_CHANGE">Oil & Filter Change</option>
                 <option value="BRAKE_INSPECTION">Brake Pad & Drum Inspection</option>
@@ -594,51 +594,51 @@ export const Vehicles: React.FC = () => {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-slate-700 font-medium mb-1">Cost (₹ INR)</label>
+                <label className="block font-mono text-[11px] font-bold text-ops-dim uppercase mb-1">Cost (₹ INR)</label>
                 <input
                   type="number"
                   required
                   value={newLog.cost}
                   onChange={(e) => setNewLog({ ...newLog, cost: Number(e.target.value) })}
-                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-xs font-mono"
+                  className="w-full px-3 py-2 bg-ops-bg border border-ops-border rounded-lg text-xs font-mono text-ops-text focus:border-cyan-500"
                 />
               </div>
               <div>
-                <label className="block text-slate-700 font-medium mb-1">Odometer (km)</label>
+                <label className="block font-mono text-[11px] font-bold text-ops-dim uppercase mb-1">Odometer (km)</label>
                 <input
                   type="number"
                   required
                   value={newLog.odometerKm}
                   onChange={(e) => setNewLog({ ...newLog, odometerKm: Number(e.target.value) })}
-                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-xs font-mono"
+                  className="w-full px-3 py-2 bg-ops-bg border border-ops-border rounded-lg text-xs font-mono text-ops-text focus:border-cyan-500"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-slate-700 font-medium mb-1">Description / Notes</label>
+              <label className="block font-mono text-[11px] font-bold text-ops-dim uppercase mb-1">Description / Notes</label>
               <textarea
                 rows={2}
                 value={newLog.description}
                 onChange={(e) => setNewLog({ ...newLog, description: e.target.value })}
                 placeholder="e.g., Synthetic engine oil replacement and oil filter change..."
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-xs"
+                className="w-full px-3 py-2 bg-ops-bg border border-ops-border rounded-lg text-xs text-ops-text focus:border-cyan-500"
               ></textarea>
             </div>
 
-            <div className="flex justify-end gap-2 pt-3 border-t border-slate-200">
+            <div className="flex justify-end gap-2 pt-3 border-t border-ops-border">
               <button
                 type="button"
                 onClick={() => setIsMaintenanceModalOpen(false)}
-                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 rounded-md font-medium"
+                className="px-3.5 py-1.5 bg-ops-panel hover:bg-ops-panelHover border border-ops-border text-ops-muted hover:text-ops-text rounded-md font-mono font-semibold"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-md font-semibold shadow-2xs"
+                className="px-4 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-black font-mono font-bold rounded-md uppercase tracking-wider shadow-glow-cyan"
               >
-                Confirm Log
+                Confirm Service Log
               </button>
             </div>
           </form>
@@ -650,9 +650,9 @@ export const Vehicles: React.FC = () => {
         isOpen={Boolean(deleteTarget)}
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDeleteVehicle}
-        title="Delete Vehicle Asset"
+        title="Purge Vehicle Asset"
         message={`Are you sure you want to permanently delete vehicle ${deleteTarget?.code} (${deleteTarget?.licensePlate})? This cannot be undone.`}
-        confirmText="Delete Vehicle"
+        confirmText="Purge Vehicle"
         isDangerous={true}
         isLoading={isDeleting}
       />

@@ -11,6 +11,7 @@ import {
   AlertTriangle,
   ArrowRight,
   ShieldCheck,
+  Layers,
 } from 'lucide-react';
 import { vehiclesApi, driversApi, reportsApi } from '../services/api';
 import { Vehicle, Driver, DashboardKPIs } from '../../shared/types';
@@ -63,42 +64,43 @@ export const FleetDashboard: React.FC = () => {
   return (
     <div className="space-y-6 pb-12">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-4">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-ops-border pb-4">
         <div>
-          <div className="flex items-center space-x-2">
-            <h1 className="text-xl font-bold text-slate-900 tracking-tight">
+          <div className="flex items-center space-x-2.5">
+            <h1 className="text-xl font-bold font-mono tracking-tight text-white uppercase flex items-center gap-2">
+              <span className="w-2 h-4 bg-cyan-400 rounded-xs"></span>
               Fleet Operations & Asset Health
             </h1>
-            <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200 text-xs font-semibold">
-              {vehicles.length} Total Vehicles
+            <span className="px-2.5 py-0.5 rounded-md bg-ops-surface border border-ops-border text-ops-muted text-xs font-mono font-bold">
+              {vehicles.length} VEHICLES
             </span>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-ops-muted mt-1 font-sans">
             Commercial vehicle inventory, maintenance tracking, driver shifts, and asset availability
           </p>
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2.5 font-mono">
           <button
             onClick={() => fetchData(true)}
-            className="p-1.5 rounded-md bg-white hover:bg-slate-50 border border-slate-300 text-slate-600 shadow-2xs transition-colors"
+            className="p-2 rounded-md bg-ops-surface hover:bg-ops-panel border border-ops-border text-ops-muted hover:text-ops-text shadow-panel transition-colors"
             title="Refresh fleet data"
           >
             <RotateCw className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => navigate('/vehicles')}
-            className="px-3.5 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold inline-flex items-center gap-1.5 shadow-2xs transition-colors"
+            className="px-4 py-1.5 rounded-md bg-cyan-600 hover:bg-cyan-500 text-black text-xs font-bold uppercase tracking-wider inline-flex items-center gap-1.5 shadow-glow-cyan transition-all"
           >
             <Plus className="w-4 h-4" />
-            <span>Add Vehicle</span>
+            <span>ENROLL ASSET</span>
           </button>
           <button
             onClick={() => navigate('/drivers')}
-            className="px-3.5 py-1.5 rounded-md bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-xs font-semibold inline-flex items-center gap-1.5 shadow-2xs transition-colors"
+            className="px-3.5 py-1.5 rounded-md bg-ops-panel hover:bg-ops-panelHover border border-ops-border text-ops-text text-xs font-semibold inline-flex items-center gap-1.5 shadow-panel transition-all"
           >
-            <Users className="w-4 h-4 text-slate-500" />
-            <span>Driver Roster</span>
+            <Users className="w-4 h-4 text-cyan-400" />
+            <span>DRIVER ROSTER</span>
           </button>
         </div>
       </div>
@@ -115,32 +117,36 @@ export const FleetDashboard: React.FC = () => {
           <MetricCard
             label="Total Commercial Fleet"
             value={vehicles.length}
-            icon={<Truck className="w-4 h-4 text-slate-700" />}
+            icon={<Truck className="w-4 h-4 text-cyan-400" />}
             subtext={`${activeVehicles.length} active on road`}
+            variant="cyan"
             onClick={() => navigate('/vehicles')}
           />
 
           <MetricCard
-            label="Under Maintenance"
+            label="Maintenance Bay"
             value={maintenanceVehicles.length}
-            icon={<Wrench className="w-4 h-4 text-rose-600" />}
+            icon={<Wrench className="w-4 h-4 text-rose-400" />}
             subtext="Locked from dispatch"
+            variant="rose"
             onClick={() => navigate('/vehicles')}
           />
 
           <MetricCard
             label="Available Drivers"
             value={availableDrivers.length}
-            icon={<Users className="w-4 h-4 text-emerald-600" />}
+            icon={<Users className="w-4 h-4 text-emerald-400" />}
             subtext={`Out of ${drivers.length} total staff`}
+            variant="emerald"
             onClick={() => navigate('/drivers')}
           />
 
           <MetricCard
             label="Fleet Utilization"
             value={kpis ? `${kpis.fleet.utilizationPercent}%` : '0%'}
-            icon={<TrendingUp className="w-4 h-4 text-blue-600" />}
+            icon={<TrendingUp className="w-4 h-4 text-sky-400" />}
             subtext="Active transport duty"
+            variant="accent"
             onClick={() => navigate('/vehicles')}
           />
         </div>
@@ -149,24 +155,25 @@ export const FleetDashboard: React.FC = () => {
       {/* Main Grid: Maintenance & Drivers Overview */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Maintenance Bay Queue */}
-        <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-2xs space-y-3">
-          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-            <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-              <Wrench className="w-3.5 h-3.5 text-rose-500" />
-              <span>Vehicles in Maintenance Bay ({maintenanceVehicles.length})</span>
+        <div className="bg-ops-surface border border-ops-border rounded-xl p-4 shadow-panel space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-ops-border">
+            <h2 className="text-xs font-mono font-bold text-ops-text uppercase tracking-wider flex items-center gap-2">
+              <span className="w-1.5 h-3 bg-rose-500 rounded-xs"></span>
+              Vehicles in Maintenance Bay ({maintenanceVehicles.length})
             </h2>
             <button
               onClick={() => navigate('/vehicles')}
-              className="text-xs text-slate-600 hover:text-slate-900 font-medium"
+              className="text-xs font-mono text-cyan-400 hover:text-cyan-300 font-semibold"
             >
-              View all
+              MANAGE BAY
             </button>
           </div>
 
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-ops-border/40">
             {maintenanceVehicles.length === 0 ? (
-              <div className="py-12 text-center text-slate-400 text-xs">
-                <CheckCircle2 className="w-7 h-7 text-emerald-500 mx-auto mb-1.5" />
+              <div className="py-12 text-center text-ops-dim text-xs font-mono space-y-1.5">
+                <CheckCircle2 className="w-7 h-7 text-emerald-400 mx-auto mb-1" />
+                <span className="text-emerald-400 font-bold block">100% OPERATIONAL AVAILABILITY</span>
                 <span>Zero vehicles currently grounded in maintenance</span>
               </div>
             ) : (
@@ -174,11 +181,11 @@ export const FleetDashboard: React.FC = () => {
                 <div
                   key={v.id}
                   onClick={() => navigate('/vehicles')}
-                  className="py-2.5 flex items-center justify-between hover:bg-slate-50 p-2 rounded cursor-pointer transition-colors text-xs"
+                  className="py-2.5 flex items-center justify-between hover:bg-ops-panel p-2 rounded-lg cursor-pointer transition-all text-xs"
                 >
                   <div>
-                    <span className="font-mono font-bold text-slate-900 block">{v.code} ({v.licensePlate})</span>
-                    <span className="text-slate-500 text-[11px]">{v.make} {v.model} &bull; {v.type.replace(/_/g, ' ')}</span>
+                    <span className="font-mono font-bold text-white block">{v.code} ({v.licensePlate})</span>
+                    <span className="text-ops-dim text-[11px] font-sans">{v.make} {v.model} &bull; {v.type.replace(/_/g, ' ')}</span>
                   </div>
                   <StatusBadge status={v.status} type="vehicle" />
                 </div>
@@ -188,24 +195,25 @@ export const FleetDashboard: React.FC = () => {
         </div>
 
         {/* Ready Driver Shift Roster */}
-        <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-2xs space-y-3">
-          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-            <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-              <Users className="w-3.5 h-3.5 text-emerald-500" />
-              <span>Available Drivers Ready for Dispatch ({availableDrivers.length})</span>
+        <div className="bg-ops-surface border border-ops-border rounded-xl p-4 shadow-panel space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-ops-border">
+            <h2 className="text-xs font-mono font-bold text-ops-text uppercase tracking-wider flex items-center gap-2">
+              <span className="w-1.5 h-3 bg-emerald-400 rounded-xs"></span>
+              Available Drivers Ready for Dispatch ({availableDrivers.length})
             </h2>
             <button
               onClick={() => navigate('/drivers')}
-              className="text-xs text-slate-600 hover:text-slate-900 font-medium"
+              className="text-xs font-mono text-cyan-400 hover:text-cyan-300 font-semibold"
             >
-              View roster
+              VIEW ROSTER
             </button>
           </div>
 
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-ops-border/40">
             {availableDrivers.length === 0 ? (
-              <div className="py-12 text-center text-slate-400 text-xs">
-                <AlertTriangle className="w-7 h-7 text-amber-500 mx-auto mb-1.5" />
+              <div className="py-12 text-center text-ops-dim text-xs font-mono space-y-1.5">
+                <AlertTriangle className="w-7 h-7 text-amber-400 mx-auto mb-1" />
+                <span className="text-amber-400 font-bold block">ZERO OPERATORS AVAILABLE</span>
                 <span>All drivers currently on road or off duty</span>
               </div>
             ) : (
@@ -213,11 +221,11 @@ export const FleetDashboard: React.FC = () => {
                 <div
                   key={d.id}
                   onClick={() => navigate('/drivers')}
-                  className="py-2.5 flex items-center justify-between hover:bg-slate-50 p-2 rounded cursor-pointer transition-colors text-xs"
+                  className="py-2.5 flex items-center justify-between hover:bg-ops-panel p-2 rounded-lg cursor-pointer transition-all text-xs"
                 >
                   <div>
-                    <span className="font-semibold text-slate-900 block">{d.firstName} {d.lastName}</span>
-                    <span className="text-slate-500 text-[11px] font-mono">{d.driverCode} &bull; {d.phone}</span>
+                    <span className="font-semibold text-white block">{d.firstName} {d.lastName}</span>
+                    <span className="text-ops-dim text-[11px] font-mono">{d.driverCode || d.code} &bull; {d.phone}</span>
                   </div>
                   <StatusBadge status={d.status} type="driver" />
                 </div>
