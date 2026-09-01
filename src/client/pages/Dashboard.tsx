@@ -11,6 +11,7 @@ import {
   ArrowRight,
   TrendingUp,
   RotateCw,
+  Plus,
 } from 'lucide-react';
 import { reportsApi, deliveriesApi, trackingApi } from '../services/api';
 import { DashboardKPIs, Delivery } from '../../shared/types';
@@ -118,9 +119,10 @@ export const Dashboard: React.FC = () => {
 
           <button
             onClick={() => navigate('/orders')}
-            className="px-3.5 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium flex items-center gap-1.5 transition-colors shadow-2xs"
+            className="px-3.5 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold inline-flex items-center gap-1.5 shadow-2xs transition-colors"
           >
-            <span>+ Book New Order</span>
+            <Plus className="w-4 h-4" />
+            <span>Book New Order</span>
           </button>
         </div>
       </div>

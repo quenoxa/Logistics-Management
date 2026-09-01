@@ -10,6 +10,7 @@ import {
   MapPin,
   Filter,
   RotateCw,
+  Plus,
 } from 'lucide-react';
 import { deliveriesApi, driversApi, vehiclesApi } from '../services/api';
 import { Delivery, Driver, Vehicle } from '../../shared/types';
@@ -179,9 +180,10 @@ export const Deliveries: React.FC = () => {
           </button>
           <button
             onClick={() => navigate('/orders')}
-            className="px-3.5 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium transition-colors shadow-2xs"
+            className="px-3.5 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold inline-flex items-center gap-1.5 shadow-2xs transition-colors"
           >
-            + Dispatch Shipment
+            <Plus className="w-4 h-4" />
+            <span>Dispatch Shipment</span>
           </button>
         </div>
       </div>
