@@ -8,6 +8,7 @@
     "client:dev": "vite",
     "server:dev": "nodemon",
     "build": "tsc && vite build",
+    "vercel-build": "prisma generate && tsc && vite build",
     "start": "ts-node -P tsconfig.server.json src/server/server.ts",
     "preview": "vite preview",
     "db:push": "prisma db push",

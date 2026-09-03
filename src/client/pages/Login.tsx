@@ -60,7 +60,8 @@ export const Login: React.FC = () => {
       success('Access Granted', 'Session verified. Welcome to LOGISTIX.');
       navigate('/');
     } catch (err: any) {
-      const msg = err.response?.data?.error || 'Authentication failed. Please verify your credentials.';
+      const raw = err.response?.data?.error || err.response?.data?.message || err.message;
+      const msg = typeof raw === 'string' ? raw : (raw?.message || 'Authentication failed. Please verify your credentials.');
       setError(msg);
       toastError('Access Denied', msg);
     } finally {

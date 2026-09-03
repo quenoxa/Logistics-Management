@@ -66,7 +66,8 @@ export const Register: React.FC = () => {
         navigate('/login');
       }
     } catch (err: any) {
-      const msg = err.response?.data?.error || 'Registration failed. Please try again.';
+      const raw = err.response?.data?.error || err.response?.data?.message || err.message;
+      const msg = typeof raw === 'string' ? raw : (raw?.message || 'Registration failed. Please try again.');
       setError(msg);
       toastError('Registration Failed', msg);
     } finally {
