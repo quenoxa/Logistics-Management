@@ -52,22 +52,21 @@ router.get('/', authenticateToken, async (req: AuthenticatedRequest, res: Respon
     if (search) {
       const q = (search as string).trim();
       where.OR = [
-        { trackingNumber: { contains: q } },
-        { customerName: { contains: q } },
-        { pickupAddress: { contains: q } },
-        { deliveryAddress: { contains: q } },
-        { packageDescription: { contains: q } },
-        { driver: { firstName: { contains: q } } },
-        { driver: { lastName: { contains: q } } },
-        { vehicle: { code: { contains: q } } },
+        { trackingNumber: { contains: q, mode: 'insensitive' } },
+        { customerName: { contains: q, mode: 'insensitive' } },
+        { pickupAddress: { contains: q, mode: 'insensitive' } },
+        { deliveryAddress: { contains: q, mode: 'insensitive' } },
+        { packageDescription: { contains: q, mode: 'insensitive' } },
       ];
     }
 
+    const validSortFields = ['createdAt', 'updatedAt', 'status', 'priority', 'trackingNumber', 'customerName'];
+    const sortField = validSortFields.includes(sort as string) ? (sort as string) : 'createdAt';
     const orderBy: any = {};
-    orderBy[sort as string] = order === 'asc' ? 'asc' : 'desc';
+    orderBy[sortField] = order === 'asc' ? 'asc' : 'desc';
 
     const pageNum = parseInt(page as string) || 1;
-    const limitNum = parseInt(limit as string) || 50;
+    const limitNum = Math.min(parseInt(limit as string) || 50, 100);
 
     const [deliveries, total] = await Promise.all([
       prisma.delivery.findMany({
@@ -99,7 +98,8 @@ router.get('/', authenticateToken, async (req: AuthenticatedRequest, res: Respon
       totalPages: Math.ceil(total / limitNum),
     });
   } catch (error: any) {
-    res.status(500).json({ success: false, message: 'Failed to fetch deliveries' });
+    console.error('[GET /api/deliveries] Error:', error?.message || error);
+    res.status(500).json({ success: false, message: 'Failed to fetch deliveries', detail: error?.message });
   }
 });
 

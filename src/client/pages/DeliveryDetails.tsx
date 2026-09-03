@@ -24,6 +24,33 @@ import { useToast } from '../context/ToastContext';
 import { useAuth } from '../context/AuthContext';
 import { useAutoRefresh } from '../hooks/useAutoRefresh';
 
+// ── Canonical state machine (mirrors backend ALLOWED_TRANSITIONS exactly) ──
+const ALLOWED_TRANSITIONS: Record<string, string[]> = {
+  PENDING:          ['ASSIGNED', 'DISPATCHED', 'ACCEPTED', 'CANCELLED', 'FAILED'],
+  ASSIGNED:         ['ACCEPTED', 'PICKED_UP', 'CANCELLED', 'FAILED'],
+  DISPATCHED:       ['ACCEPTED', 'PICKED_UP', 'IN_TRANSIT', 'CANCELLED', 'FAILED'],
+  ACCEPTED:         ['PICKED_UP', 'IN_TRANSIT', 'CANCELLED', 'FAILED'],
+  PICKED_UP:        ['IN_TRANSIT', 'OUT_FOR_DELIVERY', 'CANCELLED', 'FAILED'],
+  IN_TRANSIT:       ['OUT_FOR_DELIVERY', 'DELIVERED', 'FAILED', 'CANCELLED'],
+  OUT_FOR_DELIVERY: ['DELIVERED', 'FAILED', 'CANCELLED'],
+  DELIVERED:        [],
+  FAILED:           ['PENDING', 'ASSIGNED', 'CANCELLED'],
+  CANCELLED:        [],
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  PENDING:          'Pending',
+  ASSIGNED:         'Assigned',
+  DISPATCHED:       'Dispatched',
+  ACCEPTED:         'Accepted',
+  PICKED_UP:        'Picked Up',
+  IN_TRANSIT:       'In Transit',
+  OUT_FOR_DELIVERY: 'Out for Delivery',
+  DELIVERED:        'Delivered (Final POD)',
+  FAILED:           'Failed',
+  CANCELLED:        'Cancelled',
+};
+
 export const DeliveryDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -162,7 +189,8 @@ export const DeliveryDetails: React.FC = () => {
         {can('deliveries:update_status') && (
           <button
             onClick={() => {
-              setNextStatus('IN_TRANSIT');
+              const validNext = delivery ? (ALLOWED_TRANSITIONS[delivery.status] || [])[0] || '' : '';
+              setNextStatus(validNext);
               setIsTransitionOpen(true);
             }}
             className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold inline-flex items-center gap-2 shadow-md shadow-emerald-600/20 transition"
@@ -313,19 +341,25 @@ export const DeliveryDetails: React.FC = () => {
         <form onSubmit={handleStatusTransition} className="space-y-4 text-xs">
           <div>
             <label className="block font-bold text-slate-700 mb-1">Select Next Status Stage *</label>
-            <select
-              required
-              value={nextStatus}
-              onChange={(e) => setNextStatus(e.target.value)}
-              className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 font-bold"
-            >
-              <option value="ACCEPTED">ACCEPTED</option>
-              <option value="PICKED_UP">PICKED UP</option>
-              <option value="IN_TRANSIT">IN TRANSIT</option>
-              <option value="OUT_FOR_DELIVERY">OUT FOR DELIVERY</option>
-              <option value="DELIVERED">DELIVERED (Final POD)</option>
-              <option value="CANCELLED">CANCELLED</option>
-            </select>
+            {/* Options are derived ONLY from ALLOWED_TRANSITIONS for the current status —
+                this prevents any invalid transition from being submitted to the backend */}
+            {(ALLOWED_TRANSITIONS[delivery?.status || ''] || []).length === 0 ? (
+              <p className="text-slate-500 italic py-2">
+                This delivery is in a terminal state (<strong>{delivery?.status}</strong>) and cannot be advanced further.
+              </p>
+            ) : (
+              <select
+                required
+                value={nextStatus}
+                onChange={(e) => setNextStatus(e.target.value)}
+                className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 font-bold"
+              >
+                <option value="">— Select next milestone —</option>
+                {(ALLOWED_TRANSITIONS[delivery?.status || ''] || []).map((s) => (
+                  <option key={s} value={s}>{STATUS_LABELS[s] || s}</option>
+                ))}
+              </select>
+            )}
           </div>
 
           {nextStatus === 'DELIVERED' && (
