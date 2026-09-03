@@ -15,7 +15,7 @@
 LOGISTIX is structured as a unified full-stack TypeScript repository:
 
 ```
-Logistics-management/
+Logistix/
 ├── api/                           # Vercel Serverless Function Handlers
 │   ├── index.ts                   # Root Serverless API handler
 │   └── [...all].ts                # Wildcard catch-all Serverless API handler
@@ -166,8 +166,8 @@ Shipments advance through a strictly enforced sequential workflow:
 
 ### 2. Clone & Install Dependencies
 ```bash
-git clone https://github.com/Benedict-Edwin/Logistics-management.git
-cd Logistics-management
+git clone https://github.com/Benedict-Edwin/Logistix.git
+cd Logistix
 npm install
 ```
 
