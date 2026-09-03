@@ -16,7 +16,7 @@ import {
 import { useToast } from '../context/ToastContext';
 import { authApi } from '../services/api';
 
-const logisticsBg = '/assets/logistics-signup-bg.jpg';
+const logisticsBg = '/assets/logistics-hero-bg.jpg';
 
 export const Register: React.FC = () => {
   const navigate = useNavigate();
@@ -85,7 +85,7 @@ export const Register: React.FC = () => {
           <div
             className="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-overlay pointer-events-none transition-transform duration-700 hover:scale-105"
             style={{
-              backgroundImage: `url(${logisticsBg}), url('/assets/logistics-signup-bg.jpg')`,
+              backgroundImage: `url(${logisticsBg}), url('/assets/logistics-hero-bg.jpg')`,
             }}
           />
           {/* Dark Navy Gradient Overlay for optimal text readability */}

@@ -75,14 +75,14 @@ export const Login: React.FC = () => {
         
         {/* Left LOGISTIX Hero Showcase Panel (Reference Design) */}
         <div className="lg:col-span-6 bg-[#0F172A] p-8 sm:p-12 flex flex-col justify-between relative overflow-hidden text-white">
-          {/* Background Cargo / Airplane Logistics Overlay */}
+          {/* Background Logistics Operations Image Overlay */}
           <div
-            className="absolute inset-0 bg-cover bg-center opacity-25 mix-blend-overlay pointer-events-none"
+            className="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-overlay pointer-events-none transition-transform duration-700 hover:scale-105"
             style={{
-              backgroundImage: `url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1200')`,
+              backgroundImage: `url('/assets/logistics-hero-bg.jpg')`,
             }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A] via-[#0F172A]/80 to-transparent pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A] via-[#0F172A]/80 to-[#0F172A]/60 pointer-events-none" />
 
           {/* LOGISTIX Logo */}
           <div className="relative z-10">
