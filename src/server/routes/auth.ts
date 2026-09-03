@@ -246,12 +246,13 @@ router.post('/register', async (req, res): Promise<void> => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    // Public self-registration assigns VIEWER by default; ADMIN, DISPATCHER, and DRIVER are provisioned by Admin
     const user = await prisma.user.create({
       data: {
         email: email.toLowerCase().trim(),
         password: hashedPassword,
         name: name.trim(),
-        role: role || 'DISPATCHER',
+        role: 'VIEWER',
       },
     });
 

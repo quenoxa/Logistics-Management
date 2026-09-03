@@ -27,7 +27,6 @@ export const Register: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState<'DISPATCHER' | 'VIEWER'>('DISPATCHER');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -54,15 +53,17 @@ export const Register: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      // Call Admin / Register user API endpoint
-      await authApi.login(email, password).catch(async () => {
-        // Fallback or self-register via admin user endpoint
-        return await fetch('/api/admin/users', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, email, password, role }),
-        });
+      // Call public registration endpoint (assigns VIEWER by default)
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password }),
       });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Registration failed.');
+      }
 
       // Auto-login newly registered account
       await login(email, password);
@@ -288,17 +289,12 @@ export const Register: React.FC = () => {
                 </div>
               </div>
 
-              {/* Role Selection */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Select Role</label>
-                <select
-                  value={role}
-                  onChange={(e) => setRole(e.target.value as any)}
-                  className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 font-semibold focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
-                >
-                  <option value="DISPATCHER">DISPATCHER (Logistics Operations & Dispatch)</option>
-                  <option value="VIEWER">VIEWER (Read-only Analytics & Tracking)</option>
-                </select>
+              {/* Default Authorization Level Notice */}
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs font-sans">
+                <span className="text-slate-500 font-medium">Default Role:</span>
+                <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold border border-emerald-200">
+                  VIEWER (Monitoring)
+                </span>
               </div>
 
               {/* Primary Emerald Gradient Submit Button */}

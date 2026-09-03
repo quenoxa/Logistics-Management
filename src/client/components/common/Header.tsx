@@ -30,9 +30,8 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
   const roleLabelMap: Record<string, string> = {
     ADMIN: 'Administrator',
     DISPATCHER: 'Dispatcher',
-    FLEET_MANAGER: 'Fleet Manager',
     DRIVER: 'Driver',
-    VIEWER: 'Viewer',
+    VIEWER: 'Viewer (Read-Only)',
   };
 
   const roleTitle = roleLabelMap[user?.role || 'DISPATCHER'] || user?.role || 'User';

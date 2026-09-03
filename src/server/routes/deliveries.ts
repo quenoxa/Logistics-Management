@@ -230,6 +230,13 @@ router.get('/:id', authenticateToken, async (req: AuthenticatedRequest, res: Res
       return;
     }
 
+    if (req.user?.role === 'DRIVER') {
+      if (!delivery.driver || delivery.driver.userId !== req.user.id) {
+        res.status(403).json({ success: false, message: 'Forbidden: Drivers can only view their own assigned deliveries' });
+        return;
+      }
+    }
+
     res.json({ success: true, delivery });
   } catch (error: any) {
     res.status(500).json({ success: false, message: 'Failed to fetch delivery details' });
@@ -649,6 +656,18 @@ router.patch('/:id/status', authenticateToken, async (req: AuthenticatedRequest,
       return;
     }
 
+    if (req.user?.role === 'VIEWER') {
+      res.status(403).json({ success: false, message: 'Forbidden: Viewer cannot mutate delivery status' });
+      return;
+    }
+
+    if (req.user?.role === 'DRIVER') {
+      if (!delivery.driver || delivery.driver.userId !== req.user.id) {
+        res.status(403).json({ success: false, message: 'Forbidden: Drivers can only transition their own assigned deliveries' });
+        return;
+      }
+    }
+
     const currentStatus = delivery.status;
     const allowed = ALLOWED_TRANSITIONS[currentStatus] || [];
 
@@ -788,6 +807,12 @@ router.patch('/:id/status', authenticateToken, async (req: AuthenticatedRequest,
 
 // Legacy POST transition endpoint alias
 router.post('/:id/transition', authenticateToken, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  // ── Role gate: must come FIRST before any body/DB work ──
+  if (req.user?.role === 'VIEWER') {
+    res.status(403).json({ error: 'Forbidden: Viewer cannot mutate delivery status' });
+    return;
+  }
+
   const { nextStatus, notes, recipientSignature, delayReason, currentLat, currentLng } = req.body;
   req.body = {
     status: nextStatus,
@@ -813,6 +838,13 @@ router.post('/:id/transition', authenticateToken, async (req: AuthenticatedReque
   if (!delivery) {
     res.status(404).json({ error: 'Delivery not found' });
     return;
+  }
+
+  if (req.user?.role === 'DRIVER') {
+    if (!delivery.driver || delivery.driver.userId !== req.user.id) {
+      res.status(403).json({ error: 'Forbidden: Drivers can only transition their own assigned deliveries' });
+      return;
+    }
   }
 
   const currentStatus = delivery.status;

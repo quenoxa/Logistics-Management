@@ -23,10 +23,12 @@ import { DataTable, Column } from '../components/common/DataTable';
 import { Modal } from '../components/common/Modal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { useToast } from '../context/ToastContext';
+import { useAuth } from '../context/AuthContext';
 import { useAutoRefresh } from '../hooks/useAutoRefresh';
 import { MetricCard } from '../components/common/MetricCard';
 
 export const Vehicles: React.FC = () => {
+  const { can, isAdmin } = useAuth();
   const { success, error } = useToast();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [drivers, setDrivers] = useState<Driver[]>([]);
@@ -130,7 +132,7 @@ export const Vehicles: React.FC = () => {
   const inTransitVehicles = vehicles.filter((v) => v.status === 'IN_TRANSIT' || v.status === 'ASSIGNED').length;
   const maintenanceVehicles = vehicles.filter((v) => v.status === 'MAINTENANCE').length;
 
-  const columns: Column<Vehicle>[] = [
+  const baseColumns: Column<Vehicle>[] = [
     {
       header: 'Vehicle Code / Plate',
       accessor: 'code',
@@ -187,37 +189,47 @@ export const Vehicles: React.FC = () => {
       sortable: true,
       render: (v) => <StatusBadge status={v.status} type="vehicle" />,
     },
-    {
-      header: 'Actions',
-      className: 'text-right',
-      render: (v) => (
-        <div className="flex items-center justify-end space-x-2">
-          <select
-            value={v.status}
-            onChange={(e) => handleToggleStatus(v.id, e.target.value)}
-            onClick={(e) => e.stopPropagation()}
-            className="px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none"
-          >
-            <option value="AVAILABLE">AVAILABLE</option>
-            <option value="ACTIVE">ACTIVE</option>
-            <option value="ASSIGNED">ASSIGNED</option>
-            <option value="MAINTENANCE">MAINTENANCE</option>
-            <option value="INACTIVE">INACTIVE</option>
-          </select>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setDeleteTarget(v);
-            }}
-            className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg transition"
-            title="Delete vehicle"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        </div>
-      ),
-    },
   ];
+
+  const columns: Column<Vehicle>[] = (can('vehicles:update_status') || can('vehicles:delete'))
+    ? [
+        ...baseColumns,
+        {
+          header: 'Actions',
+          className: 'text-right',
+          render: (v) => (
+            <div className="flex items-center justify-end space-x-2">
+              {can('vehicles:update_status') && (
+                <select
+                  value={v.status}
+                  onChange={(e) => handleToggleStatus(v.id, e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
+                  className="px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none"
+                >
+                  <option value="AVAILABLE">AVAILABLE</option>
+                  <option value="ACTIVE">ACTIVE</option>
+                  <option value="ASSIGNED">ASSIGNED</option>
+                  <option value="MAINTENANCE">MAINTENANCE</option>
+                  <option value="INACTIVE">INACTIVE</option>
+                </select>
+              )}
+              {can('vehicles:delete') && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDeleteTarget(v);
+                  }}
+                  className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg transition"
+                  title="Delete vehicle"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          ),
+        },
+      ]
+    : baseColumns;
 
   return (
     <div className="space-y-6 pb-12 font-sans text-slate-800">
@@ -246,13 +258,15 @@ export const Vehicles: React.FC = () => {
             <RotateCw className="w-4 h-4" />
           </button>
 
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold inline-flex items-center gap-2 shadow-md shadow-emerald-600/20 transition"
-          >
-            <Plus className="w-4 h-4" />
-            <span>+ Add Vehicle</span>
-          </button>
+          {can('vehicles:create') && (
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold inline-flex items-center gap-2 shadow-md shadow-emerald-600/20 transition"
+            >
+              <Plus className="w-4 h-4" />
+              <span>+ Add Vehicle</span>
+            </button>
+          )}
         </div>
       </div>
 

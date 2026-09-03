@@ -90,7 +90,7 @@ router.get('/:id', authenticateToken, async (req: AuthenticatedRequest, res: Res
 });
 
 // Create driver
-router.post('/', authenticateToken, requireRole('ADMIN', 'DISPATCHER'), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+router.post('/', authenticateToken, requireRole('ADMIN'), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const {
       code,
@@ -167,7 +167,7 @@ router.post('/', authenticateToken, requireRole('ADMIN', 'DISPATCHER'), async (r
 });
 
 // Update driver
-router.put('/:id', authenticateToken, requireRole('ADMIN', 'DISPATCHER'), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+router.put('/:id', authenticateToken, requireRole('ADMIN'), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const {
@@ -238,6 +238,24 @@ router.patch('/:id/status', authenticateToken, async (req: AuthenticatedRequest,
     const { id } = req.params;
     const { status } = req.body;
 
+    if (req.user?.role === 'VIEWER') {
+      res.status(403).json({ error: 'Forbidden: Viewer cannot change driver duty status' });
+      return;
+    }
+
+    const existingDriver = await prisma.driver.findUnique({ where: { id } });
+    if (!existingDriver) {
+      res.status(404).json({ error: 'Driver not found' });
+      return;
+    }
+
+    if (req.user?.role === 'DRIVER') {
+      if (existingDriver.userId !== req.user.id) {
+        res.status(403).json({ error: 'Forbidden: Drivers can only toggle their own duty status' });
+        return;
+      }
+    }
+
     if (!['AVAILABLE', 'ON_DELIVERY', 'OFF_DUTY', 'ON_LEAVE', 'SUSPENDED'].includes(status)) {
       res.status(400).json({ error: 'Invalid driver status' });
       return;
@@ -250,12 +268,16 @@ router.patch('/:id/status', authenticateToken, async (req: AuthenticatedRequest,
 
     res.json({ driver });
   } catch (error: any) {
-    res.status(500).json({ error: 'Failed to toggle driver status' });
+    if (error?.code === 'P2023' || error?.message?.includes('Invalid')) {
+      res.status(404).json({ error: 'Driver not found' });
+    } else {
+      res.status(500).json({ error: 'Failed to toggle driver status' });
+    }
   }
 });
 
 // Delete driver
-router.delete('/:id', authenticateToken, requireRole('ADMIN', 'DISPATCHER'), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+router.delete('/:id', authenticateToken, requireRole('ADMIN'), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
 

@@ -21,10 +21,12 @@ import { DataTable, Column } from '../components/common/DataTable';
 import { Modal } from '../components/common/Modal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { useToast } from '../context/ToastContext';
+import { useAuth } from '../context/AuthContext';
 import { useAutoRefresh } from '../hooks/useAutoRefresh';
 import { MetricCard } from '../components/common/MetricCard';
 
 export const Drivers: React.FC = () => {
+  const { can } = useAuth();
   const { success, error } = useToast();
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -136,7 +138,7 @@ export const Drivers: React.FC = () => {
   const offDutyDrivers = drivers.filter((d) => d.status === 'OFF_DUTY').length;
   const suspendedDrivers = drivers.filter((d) => d.status === 'SUSPENDED').length;
 
-  const columns: Column<Driver>[] = [
+  const baseColumns: Column<Driver>[] = [
     {
       header: 'Driver Code / Name',
       accessor: 'code',
@@ -203,36 +205,46 @@ export const Drivers: React.FC = () => {
       sortable: true,
       render: (d) => <StatusBadge status={d.status} type="driver" />,
     },
-    {
-      header: 'Actions',
-      className: 'text-right',
-      render: (d) => (
-        <div className="flex items-center justify-end space-x-2">
-          <select
-            value={d.status}
-            onChange={(e) => handleToggleStatus(d.id, e.target.value)}
-            onClick={(e) => e.stopPropagation()}
-            className="px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none"
-          >
-            <option value="AVAILABLE">AVAILABLE</option>
-            <option value="ON_DELIVERY">ON DELIVERY</option>
-            <option value="OFF_DUTY">OFF DUTY</option>
-            <option value="SUSPENDED">SUSPENDED</option>
-          </select>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setDeleteTarget(d);
-            }}
-            className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg transition"
-            title="Delete driver"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        </div>
-      ),
-    },
   ];
+
+  const columns: Column<Driver>[] = (can('drivers:update_status') || can('drivers:delete'))
+    ? [
+        ...baseColumns,
+        {
+          header: 'Actions',
+          className: 'text-right',
+          render: (d) => (
+            <div className="flex items-center justify-end space-x-2">
+              {can('drivers:update_status') && (
+                <select
+                  value={d.status}
+                  onChange={(e) => handleToggleStatus(d.id, e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
+                  className="px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none"
+                >
+                  <option value="AVAILABLE">AVAILABLE</option>
+                  <option value="ON_DELIVERY">ON DELIVERY</option>
+                  <option value="OFF_DUTY">OFF DUTY</option>
+                  <option value="SUSPENDED">SUSPENDED</option>
+                </select>
+              )}
+              {can('drivers:delete') && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDeleteTarget(d);
+                  }}
+                  className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg transition"
+                  title="Delete driver"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          ),
+        },
+      ]
+    : baseColumns;
 
   return (
     <div className="space-y-6 pb-12 font-sans text-slate-800">
@@ -261,13 +273,15 @@ export const Drivers: React.FC = () => {
             <RotateCw className="w-4 h-4" />
           </button>
 
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold inline-flex items-center gap-2 shadow-md shadow-emerald-600/20 transition"
-          >
-            <Plus className="w-4 h-4" />
-            <span>+ Add Driver</span>
-          </button>
+          {can('drivers:create') && (
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold inline-flex items-center gap-2 shadow-md shadow-emerald-600/20 transition"
+            >
+              <Plus className="w-4 h-4" />
+              <span>+ Add Driver</span>
+            </button>
+          )}
         </div>
       </div>
 

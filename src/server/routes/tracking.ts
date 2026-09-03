@@ -1,6 +1,6 @@
 import { Router, Response } from 'express';
 import { prisma } from '../prisma';
-import { authenticateToken, AuthenticatedRequest } from '../middleware/auth';
+import { authenticateToken, requireRole, AuthenticatedRequest } from '../middleware/auth';
 
 const router = Router();
 
@@ -141,7 +141,7 @@ router.get('/:id/route', authenticateToken, async (req: AuthenticatedRequest, re
 });
 
 // Advance delivery simulation step
-router.post('/:id/simulate-step', authenticateToken, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+router.post('/:id/simulate-step', authenticateToken, requireRole('ADMIN', 'DISPATCHER'), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const { stepDeltaPercent = 5 } = req.body;
@@ -228,7 +228,7 @@ router.post('/:id/simulate-step', authenticateToken, async (req: AuthenticatedRe
 });
 
 // Step all active deliveries forward
-router.post('/simulate-all', authenticateToken, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+router.post('/simulate-all', authenticateToken, requireRole('ADMIN', 'DISPATCHER'), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const active = await prisma.delivery.findMany({
       where: {

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, UserRole } from '../types';
 import { authApi } from '../api/client';
+import { Permission, hasPermission as checkPermission, hasRole as checkRole } from '../config/permissions';
 
 interface AuthContextType {
   user: User | null;
@@ -11,6 +12,10 @@ interface AuthContextType {
   logout: () => void;
   isAdmin: boolean;
   isDispatcher: boolean;
+  isDriver: boolean;
+  isViewer: boolean;
+  can: (permission: Permission) => boolean;
+  hasRole: (roles: UserRole[]) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -73,6 +78,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const role = user?.role;
   const isAdmin = role === 'ADMIN';
   const isDispatcher = role === 'DISPATCHER' || role === 'ADMIN';
+  const isDriver = role === 'DRIVER';
+  const isViewer = role === 'VIEWER';
+
+  const can = (permission: Permission) => checkPermission(role, permission);
+  const hasRoleHelper = (roles: UserRole[]) => checkRole(role, roles);
 
   return (
     <AuthContext.Provider
@@ -85,6 +95,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         logout,
         isAdmin,
         isDispatcher,
+        isDriver,
+        isViewer,
+        can,
+        hasRole: hasRoleHelper,
       }}
     >
       {children}

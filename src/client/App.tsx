@@ -5,6 +5,8 @@ import { ToastProvider } from './context/ToastContext';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { Header } from './components/common/Header';
 import { Sidebar } from './components/common/Sidebar';
+import { RoleGuard } from './components/auth/RoleGuard';
+import { DriverLayout } from './components/layout/DriverLayout';
 
 // Pages
 import { Login } from './pages/Login';
@@ -63,7 +65,7 @@ const RoleHomeRouter: React.FC = () => {
   const { user } = useAuth();
 
   if (user?.role === 'DRIVER') {
-    return <DriverConsole />;
+    return <Navigate to="/driver" replace />;
   }
   return <Dashboard />;
 };
@@ -89,121 +91,145 @@ export const App: React.FC = () => {
             <Route
               path="/fleet-dashboard"
               element={
-                <ProtectedLayout>
-                  <FleetDashboard />
-                </ProtectedLayout>
+                <RoleGuard allowedRoles={['ADMIN', 'DISPATCHER', 'VIEWER']}>
+                  <ProtectedLayout>
+                    <FleetDashboard />
+                  </ProtectedLayout>
+                </RoleGuard>
               }
             />
             <Route
               path="/driver"
               element={
-                <ProtectedLayout>
-                  <DriverConsole />
-                </ProtectedLayout>
+                <RoleGuard allowedRoles={['DRIVER']}>
+                  <DriverLayout>
+                    <DriverConsole />
+                  </DriverLayout>
+                </RoleGuard>
               }
             />
             <Route
               path="/driver-console"
-              element={
-                <ProtectedLayout>
-                  <DriverConsole />
-                </ProtectedLayout>
-              }
+              element={<Navigate to="/driver" replace />}
             />
             <Route
               path="/vehicles"
               element={
-                <ProtectedLayout>
-                  <Vehicles />
-                </ProtectedLayout>
+                <RoleGuard allowedRoles={['ADMIN', 'DISPATCHER', 'VIEWER']}>
+                  <ProtectedLayout>
+                    <Vehicles />
+                  </ProtectedLayout>
+                </RoleGuard>
               }
             />
             <Route
               path="/drivers"
               element={
-                <ProtectedLayout>
-                  <Drivers />
-                </ProtectedLayout>
+                <RoleGuard allowedRoles={['ADMIN', 'DISPATCHER', 'VIEWER']}>
+                  <ProtectedLayout>
+                    <Drivers />
+                  </ProtectedLayout>
+                </RoleGuard>
               }
             />
             <Route
               path="/orders"
               element={
-                <ProtectedLayout>
-                  <Orders />
-                </ProtectedLayout>
+                <RoleGuard allowedRoles={['ADMIN', 'DISPATCHER', 'VIEWER']}>
+                  <ProtectedLayout>
+                    <Orders />
+                  </ProtectedLayout>
+                </RoleGuard>
               }
             />
             <Route
               path="/deliveries"
               element={
-                <ProtectedLayout>
-                  <Deliveries />
-                </ProtectedLayout>
+                <RoleGuard allowedRoles={['ADMIN', 'DISPATCHER', 'VIEWER']}>
+                  <ProtectedLayout>
+                    <Deliveries />
+                  </ProtectedLayout>
+                </RoleGuard>
               }
             />
             <Route
               path="/deliveries/:id"
               element={
-                <ProtectedLayout>
-                  <DeliveryDetails />
-                </ProtectedLayout>
+                <RoleGuard allowedRoles={['ADMIN', 'DISPATCHER', 'VIEWER', 'DRIVER']}>
+                  <ProtectedLayout>
+                    <DeliveryDetails />
+                  </ProtectedLayout>
+                </RoleGuard>
               }
             />
             <Route
               path="/tracking"
               element={
-                <ProtectedLayout>
-                  <LiveTracking />
-                </ProtectedLayout>
+                <RoleGuard allowedRoles={['ADMIN', 'DISPATCHER', 'VIEWER']}>
+                  <ProtectedLayout>
+                    <LiveTracking />
+                  </ProtectedLayout>
+                </RoleGuard>
               }
             />
             <Route
               path="/maintenance"
               element={
-                <ProtectedLayout>
-                  <Maintenance />
-                </ProtectedLayout>
+                <RoleGuard allowedRoles={['ADMIN', 'DISPATCHER', 'VIEWER']}>
+                  <ProtectedLayout>
+                    <Maintenance />
+                  </ProtectedLayout>
+                </RoleGuard>
               }
             />
             <Route
               path="/issues"
               element={
-                <ProtectedLayout>
-                  <Issues />
-                </ProtectedLayout>
+                <RoleGuard allowedRoles={['ADMIN', 'DISPATCHER', 'VIEWER']}>
+                  <ProtectedLayout>
+                    <Issues />
+                  </ProtectedLayout>
+                </RoleGuard>
               }
             />
             <Route
               path="/reports"
               element={
-                <ProtectedLayout>
-                  <Reports />
-                </ProtectedLayout>
+                <RoleGuard allowedRoles={['ADMIN', 'DISPATCHER', 'VIEWER']}>
+                  <ProtectedLayout>
+                    <Reports />
+                  </ProtectedLayout>
+                </RoleGuard>
               }
             />
             <Route
               path="/settings"
               element={
-                <ProtectedLayout>
-                  <Settings />
-                </ProtectedLayout>
+                <RoleGuard allowedRoles={['ADMIN']}>
+                  <ProtectedLayout>
+                    <Settings />
+                  </ProtectedLayout>
+                </RoleGuard>
               }
             />
             <Route
               path="/admin"
               element={
-                <ProtectedLayout>
-                  <Admin />
-                </ProtectedLayout>
+                <RoleGuard allowedRoles={['ADMIN']}>
+                  <ProtectedLayout>
+                    <Admin />
+                  </ProtectedLayout>
+                </RoleGuard>
               }
             />
             <Route
               path="/users"
               element={
-                <ProtectedLayout>
-                  <Admin />
-                </ProtectedLayout>
+                <RoleGuard allowedRoles={['ADMIN']}>
+                  <ProtectedLayout>
+                    <Admin />
+                  </ProtectedLayout>
+                </RoleGuard>
               }
             />
             <Route path="*" element={<Navigate to="/" replace />} />

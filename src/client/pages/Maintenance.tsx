@@ -27,6 +27,7 @@ export const Maintenance: React.FC = () => {
 
   const role = user?.role;
   const canEdit = role === 'ADMIN' || role === 'DISPATCHER';
+  const canDelete = role === 'ADMIN';
 
   const loadData = async () => {
     try {
@@ -235,12 +236,15 @@ export const Maintenance: React.FC = () => {
                               Complete
                             </button>
                           )}
-                          <button
-                            onClick={() => handleDelete(r.id)}
-                            className="p-1 text-slate-400 hover:text-rose-600 transition"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          {canDelete && (
+                            <button
+                              onClick={() => handleDelete(r.id)}
+                              className="p-1 text-slate-400 hover:text-rose-600 transition"
+                              title="Delete maintenance record"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
                         </td>
                       )}
                     </tr>

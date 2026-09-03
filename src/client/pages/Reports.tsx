@@ -25,8 +25,10 @@ import { DashboardKPIs } from '../../shared/types';
 import { MetricCard } from '../components/common/MetricCard';
 import { CardSkeleton } from '../components/ui/Skeleton';
 import { useToast } from '../context/ToastContext';
+import { useAuth } from '../context/AuthContext';
 
 export const Reports: React.FC = () => {
+  const { can } = useAuth();
   const { success, error } = useToast();
   const [kpis, setKpis] = useState<DashboardKPIs | null>(null);
   const [volumeTrend, setVolumeTrend] = useState<any[]>([]);
@@ -109,13 +111,15 @@ export const Reports: React.FC = () => {
             <RotateCw className="w-4 h-4" />
           </button>
 
-          <button
-            onClick={handleExportCSV}
-            className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold inline-flex items-center gap-2 shadow-md shadow-emerald-600/20 transition"
-          >
-            <Download className="w-4 h-4" />
-            <span>Export CSV</span>
-          </button>
+          {can('reports:export') && (
+            <button
+              onClick={handleExportCSV}
+              className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold inline-flex items-center gap-2 shadow-md shadow-emerald-600/20 transition"
+            >
+              <Download className="w-4 h-4" />
+              <span>Export CSV</span>
+            </button>
+          )}
         </div>
       </div>
 

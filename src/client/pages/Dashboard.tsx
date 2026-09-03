@@ -22,10 +22,12 @@ import { StatusBadge } from '../components/common/StatusBadge';
 import { DeliveryMap } from '../components/map/DeliveryMap';
 import { CardSkeleton } from '../components/ui/Skeleton';
 import { useToast } from '../context/ToastContext';
+import { useAuth } from '../context/AuthContext';
 import { useAutoRefresh } from '../hooks/useAutoRefresh';
 
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+  const { can } = useAuth();
   const { success, error } = useToast();
   const [kpis, setKpis] = useState<DashboardKPIs | null>(null);
   const [activeDeliveries, setActiveDeliveries] = useState<Delivery[]>([]);
@@ -111,22 +113,26 @@ export const Dashboard: React.FC = () => {
             <RotateCw className="w-4 h-4" />
           </button>
 
-          <button
-            onClick={handleStepSimulation}
-            disabled={isSimulating}
-            className="px-3.5 py-2.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold flex items-center gap-2 transition shadow-sm disabled:opacity-50"
-          >
-            <Play className={`w-4 h-4 text-emerald-600 ${isSimulating ? 'animate-spin' : ''}`} />
-            <span>{isSimulating ? 'Advancing...' : 'Simulate GPS Step'}</span>
-          </button>
+          {can('tracking:simulate') && (
+            <button
+              onClick={handleStepSimulation}
+              disabled={isSimulating}
+              className="px-3.5 py-2.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold flex items-center gap-2 transition shadow-sm disabled:opacity-50"
+            >
+              <Play className={`w-4 h-4 text-emerald-600 ${isSimulating ? 'animate-spin' : ''}`} />
+              <span>{isSimulating ? 'Advancing...' : 'Simulate GPS Step'}</span>
+            </button>
+          )}
 
-          <button
-            onClick={() => navigate('/orders')}
-            className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold inline-flex items-center gap-2 shadow-md shadow-emerald-600/20 transition"
-          >
-            <Plus className="w-4 h-4" />
-            <span>+ New Delivery</span>
-          </button>
+          {can('deliveries:create') && (
+            <button
+              onClick={() => navigate('/orders')}
+              className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold inline-flex items-center gap-2 shadow-md shadow-emerald-600/20 transition"
+            >
+              <Plus className="w-4 h-4" />
+              <span>+ New Delivery</span>
+            </button>
+          )}
         </div>
       </div>
 

@@ -21,9 +21,11 @@ import { StatusBadge } from '../components/common/StatusBadge';
 import { DeliveryMap } from '../components/map/DeliveryMap';
 import { Skeleton } from '../components/ui/Skeleton';
 import { useToast } from '../context/ToastContext';
+import { useAuth } from '../context/AuthContext';
 import { useAutoRefresh } from '../hooks/useAutoRefresh';
 
 export const LiveTracking: React.FC = () => {
+  const { can } = useAuth();
   const { success, error } = useToast();
   const [activeDeliveries, setActiveDeliveries] = useState<Delivery[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -153,35 +155,48 @@ export const LiveTracking: React.FC = () => {
 
         {/* Simulation Control Toolbar */}
         <div className="flex flex-wrap items-center gap-2.5">
-          <button
-            onClick={() => handleSimulateStep(false)}
-            disabled={isStepping || !selectedId}
-            className="px-3.5 py-2.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold flex items-center gap-2 transition shadow-sm disabled:opacity-50"
-          >
-            <Play className={`w-3.5 h-3.5 text-emerald-600 ${isStepping ? 'animate-spin' : ''}`} />
-            <span>Step Selected</span>
-          </button>
+          {can('tracking:simulate') ? (
+            <>
+              <button
+                onClick={() => handleSimulateStep(false)}
+                disabled={isStepping || !selectedId}
+                className="px-3.5 py-2.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold flex items-center gap-2 transition shadow-sm disabled:opacity-50"
+              >
+                <Play className={`w-3.5 h-3.5 text-emerald-600 ${isStepping ? 'animate-spin' : ''}`} />
+                <span>Step Selected</span>
+              </button>
 
-          <button
-            onClick={handleSimulateAll}
-            disabled={isStepping}
-            className="px-3.5 py-2.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold flex items-center gap-2 transition shadow-sm disabled:opacity-50"
-          >
-            <RotateCw className={`w-3.5 h-3.5 text-emerald-600 ${isStepping ? 'animate-spin' : ''}`} />
-            <span>Step Fleet</span>
-          </button>
+              <button
+                onClick={handleSimulateAll}
+                disabled={isStepping}
+                className="px-3.5 py-2.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold flex items-center gap-2 transition shadow-sm disabled:opacity-50"
+              >
+                <RotateCw className={`w-3.5 h-3.5 text-emerald-600 ${isStepping ? 'animate-spin' : ''}`} />
+                <span>Step Fleet</span>
+              </button>
 
-          <button
-            onClick={() => setIsAutoPlaying(!isAutoPlaying)}
-            className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition shadow-sm ${
-              isAutoPlaying
-                ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200'
-                : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20'
-            }`}
-          >
-            {isAutoPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-            <span>{isAutoPlaying ? 'Pause Feed' : 'Start Feed'}</span>
-          </button>
+              <button
+                onClick={() => setIsAutoPlaying(!isAutoPlaying)}
+                className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition shadow-sm ${
+                  isAutoPlaying
+                    ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200'
+                    : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20'
+                }`}
+              >
+                {isAutoPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                <span>{isAutoPlaying ? 'Pause Feed' : 'Start Feed'}</span>
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={() => fetchActiveDeliveries(true)}
+              className="px-3.5 py-2.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold flex items-center gap-2 transition shadow-sm"
+              title="Refresh telemetry"
+            >
+              <RotateCw className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Refresh Telemetry</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -189,8 +204,14 @@ export const LiveTracking: React.FC = () => {
       <div className="p-4 bg-emerald-50/60 border border-emerald-200 rounded-2xl flex items-start space-x-3 text-xs text-emerald-900">
         <Info className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
         <div className="text-xs leading-relaxed">
-          <span className="font-bold">GPS Tracking Simulation Active: </span>
-          <span>Vehicle coordinates advance along national logistics corridors (NH-48 Mumbai-Delhi / Mumbai-Pune). Use controls to step forward.</span>
+          <span className="font-bold">
+            {can('tracking:simulate') ? 'GPS Tracking Simulation Active: ' : 'Live GPS Telemetry: '}
+          </span>
+          <span>
+            {can('tracking:simulate')
+              ? 'Vehicle coordinates advance along national logistics corridors (NH-48 Mumbai-Delhi / Mumbai-Pune). Use controls to step forward.'
+              : 'Real-time vehicle telemetry along active national transit corridors with automatic live updates.'}
+          </span>
         </div>
       </div>
 

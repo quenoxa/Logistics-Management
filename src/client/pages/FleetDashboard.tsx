@@ -19,10 +19,12 @@ import { StatusBadge } from '../components/common/StatusBadge';
 import { MetricCard } from '../components/common/MetricCard';
 import { CardSkeleton } from '../components/ui/Skeleton';
 import { useToast } from '../context/ToastContext';
+import { useAuth } from '../context/AuthContext';
 import { useAutoRefresh } from '../hooks/useAutoRefresh';
 
 export const FleetDashboard: React.FC = () => {
   const navigate = useNavigate();
+  const { can } = useAuth();
   const { error } = useToast();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [drivers, setDrivers] = useState<Driver[]>([]);
@@ -87,13 +89,15 @@ export const FleetDashboard: React.FC = () => {
           >
             <RotateCw className="w-4 h-4" />
           </button>
-          <button
-            onClick={() => navigate('/vehicles')}
-            className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold inline-flex items-center gap-2 shadow-md shadow-emerald-600/20 transition"
-          >
-            <Plus className="w-4 h-4" />
-            <span>+ Add Vehicle</span>
-          </button>
+          {can('vehicles:create') && (
+            <button
+              onClick={() => navigate('/vehicles')}
+              className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold inline-flex items-center gap-2 shadow-md shadow-emerald-600/20 transition"
+            >
+              <Plus className="w-4 h-4" />
+              <span>+ Add Vehicle</span>
+            </button>
+          )}
         </div>
       </div>
 

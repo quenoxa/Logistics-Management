@@ -21,11 +21,13 @@ import { Modal } from '../components/common/Modal';
 import { DeliveryMap } from '../components/map/DeliveryMap';
 import { Skeleton } from '../components/ui/Skeleton';
 import { useToast } from '../context/ToastContext';
+import { useAuth } from '../context/AuthContext';
 import { useAutoRefresh } from '../hooks/useAutoRefresh';
 
 export const DeliveryDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { can } = useAuth();
   const { success, error } = useToast();
   const [delivery, setDelivery] = useState<Delivery | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -157,16 +159,18 @@ export const DeliveryDetails: React.FC = () => {
           </div>
         </div>
 
-        <button
-          onClick={() => {
-            setNextStatus('IN_TRANSIT');
-            setIsTransitionOpen(true);
-          }}
-          className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold inline-flex items-center gap-2 shadow-md shadow-emerald-600/20 transition"
-        >
-          <ShieldCheck className="w-4 h-4" />
-          <span>Update Status Milestone</span>
-        </button>
+        {can('deliveries:update_status') && (
+          <button
+            onClick={() => {
+              setNextStatus('IN_TRANSIT');
+              setIsTransitionOpen(true);
+            }}
+            className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold inline-flex items-center gap-2 shadow-md shadow-emerald-600/20 transition"
+          >
+            <ShieldCheck className="w-4 h-4" />
+            <span>Update Status Milestone</span>
+          </button>
+        )}
       </div>
 
       {/* Visual Status Timeline Card */}

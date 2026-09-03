@@ -53,7 +53,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         },
         {
           to: '/orders',
-          label: 'Orders & Booking',
+          label: role === 'VIEWER' ? 'Orders' : 'Orders & Booking',
           icon: <Package className="w-4 h-4" />,
           visible: role !== 'DRIVER',
         },
@@ -72,7 +72,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         },
         {
           to: '/issues',
-          label: 'Issues & Incidents',
+          label: role === 'VIEWER' ? 'Incidents' : 'Issues & Incidents',
           icon: <AlertCircle className="w-4 h-4 text-rose-400" />,
           visible: role !== 'DRIVER',
         },
@@ -110,7 +110,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     },
     {
       title: 'DRIVER TERMINAL',
-      visible: role === 'DRIVER' || isAdmin,
+      visible: role === 'DRIVER', // Admin strictly excluded
       items: [
         {
           to: '/driver',
@@ -126,7 +126,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       items: [
         {
           to: '/reports',
-          label: 'Reports & Intelligence',
+          label: role === 'VIEWER' ? 'Reports' : 'Reports & Intelligence',
           icon: <BarChart3 className="w-4 h-4" />,
           visible: role !== 'DRIVER',
         },

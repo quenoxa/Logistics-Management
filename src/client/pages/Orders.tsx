@@ -20,10 +20,12 @@ import { StatusBadge } from '../components/common/StatusBadge';
 import { DataTable, Column } from '../components/common/DataTable';
 import { Modal } from '../components/common/Modal';
 import { useToast } from '../context/ToastContext';
+import { useAuth } from '../context/AuthContext';
 import { useAutoRefresh } from '../hooks/useAutoRefresh';
 
 export const Orders: React.FC = () => {
   const navigate = useNavigate();
+  const { can } = useAuth();
   const { success, error, warning } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
   const [drivers, setDrivers] = useState<Driver[]>([]);
@@ -170,7 +172,7 @@ export const Orders: React.FC = () => {
   const availableDrivers = drivers.filter((d) => d.status === 'AVAILABLE');
   const availableVehicles = vehicles.filter((v) => v.status === 'AVAILABLE' || v.status === 'ACTIVE');
 
-  const columns: Column<Order>[] = [
+  const baseColumns: Column<Order>[] = [
     {
       header: 'Order #',
       accessor: 'orderNumber',
@@ -228,29 +230,35 @@ export const Orders: React.FC = () => {
       sortable: true,
       render: (o) => <StatusBadge status={o.status} type="order" />,
     },
-    {
-      header: 'Actions',
-      className: 'text-right',
-      render: (o) => (
-        <div>
-          {o.status === 'PENDING' ? (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                openDispatchModal(o);
-              }}
-              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition inline-flex items-center gap-1.5"
-            >
-              <Send className="w-3.5 h-3.5" />
-              <span>Dispatch</span>
-            </button>
-          ) : (
-            <span className="text-xs text-slate-400 font-medium">Assigned</span>
-          )}
-        </div>
-      ),
-    },
   ];
+
+  const columns: Column<Order>[] = can('orders:dispatch')
+    ? [
+        ...baseColumns,
+        {
+          header: 'Actions',
+          className: 'text-right',
+          render: (o) => (
+            <div>
+              {o.status === 'PENDING' ? (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openDispatchModal(o);
+                  }}
+                  className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition inline-flex items-center gap-1.5"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  <span>Dispatch</span>
+                </button>
+              ) : (
+                <span className="text-xs text-slate-400 font-medium">Assigned</span>
+              )}
+            </div>
+          ),
+        },
+      ]
+    : baseColumns;
 
   return (
     <div className="space-y-6 pb-12 font-sans text-slate-800">
@@ -259,14 +267,16 @@ export const Orders: React.FC = () => {
         <div>
           <div className="flex items-center space-x-3">
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-              Orders & Freight Booking
+              {can('orders:create') ? 'Orders & Freight Booking' : 'Orders & Manifests'}
             </h1>
             <span className="px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-600 text-xs font-bold">
               {orders.length} Manifests
             </span>
           </div>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Book customer freight orders, assign active drivers & vehicles, and dispatch deliveries
+            {can('orders:create')
+              ? 'Book customer freight orders, assign active drivers & vehicles, and dispatch deliveries'
+              : 'Inspect customer freight orders, cargo specifications, and delivery assignment statuses'}
           </p>
         </div>
 
@@ -279,13 +289,15 @@ export const Orders: React.FC = () => {
             <RotateCw className="w-4 h-4" />
           </button>
 
-          <button
-            onClick={() => setIsCreateModalOpen(true)}
-            className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold inline-flex items-center gap-2 shadow-md shadow-emerald-600/20 transition"
-          >
-            <Plus className="w-4 h-4" />
-            <span>+ Book Freight Order</span>
-          </button>
+          {can('orders:create') && (
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold inline-flex items-center gap-2 shadow-md shadow-emerald-600/20 transition"
+            >
+              <Plus className="w-4 h-4" />
+              <span>+ Book Freight Order</span>
+            </button>
+          )}
         </div>
       </div>
 

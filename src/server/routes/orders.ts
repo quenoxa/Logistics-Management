@@ -1,6 +1,6 @@
 import { Router, Response } from 'express';
 import { prisma } from '../prisma';
-import { authenticateToken, AuthenticatedRequest } from '../middleware/auth';
+import { authenticateToken, requireRole, AuthenticatedRequest } from '../middleware/auth';
 
 const router = Router();
 
@@ -131,7 +131,7 @@ router.get('/:id', authenticateToken, async (req: AuthenticatedRequest, res: Res
 });
 
 // Create Order
-router.post('/', authenticateToken, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+router.post('/', authenticateToken, requireRole('ADMIN', 'DISPATCHER'), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const {
       orderNumber,
@@ -207,7 +207,7 @@ router.post('/', authenticateToken, async (req: AuthenticatedRequest, res: Respo
 });
 
 // Update Order
-router.put('/:id', authenticateToken, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+router.put('/:id', authenticateToken, requireRole('ADMIN', 'DISPATCHER'), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const updateData = { ...req.body };
@@ -238,7 +238,7 @@ router.put('/:id', authenticateToken, async (req: AuthenticatedRequest, res: Res
 });
 
 // Delete Order
-router.delete('/:id', authenticateToken, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+router.delete('/:id', authenticateToken, requireRole('ADMIN'), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
 

@@ -1,6 +1,6 @@
 import { Router, Response } from 'express';
 import { prisma } from '../prisma';
-import { authenticateToken, AuthenticatedRequest } from '../middleware/auth';
+import { authenticateToken, requireRole, AuthenticatedRequest } from '../middleware/auth';
 
 const router = Router();
 
@@ -39,7 +39,7 @@ router.get('/', authenticateToken, async (req: AuthenticatedRequest, res: Respon
 });
 
 // POST /api/issues (Drivers or Dispatchers report issue)
-router.post('/', authenticateToken, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+router.post('/', authenticateToken, requireRole('ADMIN', 'DISPATCHER', 'DRIVER'), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const { deliveryId, driverId, type, description, priority = 'MEDIUM' } = req.body;
 
@@ -96,7 +96,7 @@ router.post('/', authenticateToken, async (req: AuthenticatedRequest, res: Respo
 });
 
 // PATCH /api/issues/:id (Update status / details)
-router.patch('/:id', authenticateToken, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+router.patch('/:id', authenticateToken, requireRole('ADMIN', 'DISPATCHER'), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const { status, priority, description } = req.body;
@@ -119,7 +119,7 @@ router.patch('/:id', authenticateToken, async (req: AuthenticatedRequest, res: R
 });
 
 // PATCH /api/issues/:id/resolve
-router.patch('/:id/resolve', authenticateToken, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+router.patch('/:id/resolve', authenticateToken, requireRole('ADMIN', 'DISPATCHER'), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
 

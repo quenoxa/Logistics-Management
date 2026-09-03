@@ -8,7 +8,7 @@ import { Modal } from '../components/common/Modal';
 import { StatusBadge } from '../components/common/StatusBadge';
 
 export const Issues: React.FC = () => {
-  const { user } = useAuth();
+  const { user, can } = useAuth();
   const { success, error } = useToast();
   const [issues, setIssues] = useState<any[]>([]);
   const [deliveries, setDeliveries] = useState<any[]>([]);
@@ -45,8 +45,8 @@ export const Issues: React.FC = () => {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!type || !description) {
-      error('Validation Error', 'Type and description are required');
+    if (!description.trim()) {
+      error('Validation', 'Description is required');
       return;
     }
     try {
@@ -56,11 +56,12 @@ export const Issues: React.FC = () => {
         description,
         priority,
       });
-      success('Success', 'Issue reported successfully');
+      success('Created', 'Incident reported successfully');
       setIsModalOpen(false);
+      setDescription('');
       loadData();
     } catch (err: any) {
-      error('Error', 'Failed to submit issue');
+      error('Error', 'Failed to report incident');
     }
   };
 
@@ -76,7 +77,7 @@ export const Issues: React.FC = () => {
 
   const totalIssues = issues.length;
   const openIssues = issues.filter(i => i.status === 'OPEN').length;
-  const urgentIssues = issues.filter(i => (i.priority === 'URGENT' || i.priority === 'HIGH') && i.status !== 'RESOLVED').length;
+  const urgentIssues = issues.filter(i => i.priority === 'HIGH' || i.priority === 'CRITICAL').length;
   const resolvedIssues = issues.filter(i => i.status === 'RESOLVED').length;
 
   return (
@@ -92,13 +93,15 @@ export const Issues: React.FC = () => {
           </p>
         </div>
 
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold inline-flex items-center gap-2 shadow-md shadow-rose-600/20 transition"
-        >
-          <Plus className="w-4 h-4" />
-          <span>+ Report Incident</span>
-        </button>
+        {can('issues:report') && (
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold inline-flex items-center gap-2 shadow-md shadow-rose-600/20 transition"
+          >
+            <Plus className="w-4 h-4" />
+            <span>+ Report Incident</span>
+          </button>
+        )}
       </div>
 
       {/* KPI Cards */}
@@ -152,17 +155,17 @@ export const Issues: React.FC = () => {
                 <th className="py-3 px-4">Priority</th>
                 <th className="py-3 px-4">Status</th>
                 <th className="py-3 px-4">Reported At</th>
-                <th className="py-3 px-4 text-right">Action</th>
+                {can('issues:resolve') && <th className="py-3 px-4 text-right">Action</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-sans text-slate-800">
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">Loading issues...</td>
+                  <td colSpan={can('issues:resolve') ? 7 : 6} className="py-12 text-center text-slate-400">Loading issues...</td>
                 </tr>
               ) : issues.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">No issues reported.</td>
+                  <td colSpan={can('issues:resolve') ? 7 : 6} className="py-12 text-center text-slate-400">No issues reported.</td>
                 </tr>
               ) : (
                 issues.map((i) => (
@@ -193,16 +196,18 @@ export const Issues: React.FC = () => {
                     <td className="py-3 px-4 font-mono text-slate-500">
                       {new Date(i.createdAt).toLocaleString()}
                     </td>
-                    <td className="py-3 px-4 text-right">
-                      {i.status !== 'RESOLVED' && (
-                        <button
-                          onClick={() => handleResolve(i.id)}
-                          className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs shadow-sm transition"
-                        >
-                          Resolve
-                        </button>
-                      )}
-                    </td>
+                    {can('issues:resolve') && (
+                      <td className="py-3 px-4 text-right">
+                        {i.status !== 'RESOLVED' && (
+                          <button
+                            onClick={() => handleResolve(i.id)}
+                            className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs shadow-sm transition"
+                          >
+                            Resolve
+                          </button>
+                        )}
+                      </td>
+                    )}
                   </tr>
                 ))
               )}
