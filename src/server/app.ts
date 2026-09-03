@@ -28,7 +28,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Healthcheck
-app.get('/api/health', (req, res) => {
+app.get(['/api/health', '/health'], (req, res) => {
   res.json({
     status: 'ONLINE',
     service: 'LOGISTICS MANAGEMENT API',
@@ -37,22 +37,22 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Mount Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/vehicles', vehiclesRoutes);
-app.use('/api/drivers', driversRoutes);
-app.use('/api/orders', ordersRoutes);
-app.use('/api/deliveries', deliveriesRoutes);
-app.use('/api/tracking', trackingRoutes);
-app.use('/api/reports', reportsRoutes);
-app.use('/api/settings', settingsRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/maintenance', maintenanceRoutes);
-app.use('/api/issues', issuesRoutes);
+// Mount Routes (support both /api/xxx and /xxx for Vercel serverless functions)
+app.use(['/api/auth', '/auth'], authRoutes);
+app.use(['/api/vehicles', '/vehicles'], vehiclesRoutes);
+app.use(['/api/drivers', '/drivers'], driversRoutes);
+app.use(['/api/orders', '/orders'], ordersRoutes);
+app.use(['/api/deliveries', '/deliveries'], deliveriesRoutes);
+app.use(['/api/tracking', '/tracking'], trackingRoutes);
+app.use(['/api/reports', '/reports'], reportsRoutes);
+app.use(['/api/settings', '/settings'], settingsRoutes);
+app.use(['/api/admin', '/admin'], adminRoutes);
+app.use(['/api/dashboard', '/dashboard'], dashboardRoutes);
+app.use(['/api/maintenance', '/maintenance'], maintenanceRoutes);
+app.use(['/api/issues', '/issues'], issuesRoutes);
 
 // 404 handler
-app.use('/api/*', (req, res) => {
+app.use(['/api/*', '/*'], (req, res) => {
   res.status(404).json({ error: `API route not found: ${req.method} ${req.originalUrl}` });
 });
 

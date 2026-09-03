@@ -166,7 +166,7 @@ export const Register: React.FC = () => {
             {error && (
               <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center space-x-2 animate-in fade-in duration-150">
                 <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-                <span>{error}</span>
+                <span>{typeof error === 'string' ? error : (error as any)?.message || 'Registration failed'}</span>
               </div>
             )}
 

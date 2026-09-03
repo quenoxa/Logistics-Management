@@ -28,10 +28,21 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
+  const safeString = (val: any): string => {
+    if (val === null || val === undefined) return '';
+    if (typeof val === 'string') return val;
+    if (typeof val === 'object') {
+      return val.message || val.error || val.code || JSON.stringify(val);
+    }
+    return String(val);
+  };
+
   const addToast = useCallback(
     ({ type, title, message, duration = 4000 }: Omit<Toast, 'id'>) => {
       const id = Math.random().toString(36).substring(2, 9);
-      const newToast: Toast = { id, type, title, message, duration };
+      const cleanTitle = safeString(title) || 'Notification';
+      const cleanMessage = message !== undefined ? safeString(message) : undefined;
+      const newToast: Toast = { id, type, title: cleanTitle, message: cleanMessage, duration };
 
       setToasts((prev) => [...prev, newToast]);
 

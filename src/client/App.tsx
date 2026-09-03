@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { Header } from './components/common/Header';
 import { Sidebar } from './components/common/Sidebar';
 
@@ -69,8 +70,9 @@ const RoleHomeRouter: React.FC = () => {
 
 export const App: React.FC = () => {
   return (
-    <BrowserRouter>
-      <AuthProvider>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <AuthProvider>
         <ToastProvider>
           <Routes>
             <Route path="/login" element={<Login />} />
@@ -209,6 +211,7 @@ export const App: React.FC = () => {
         </ToastProvider>
       </AuthProvider>
     </BrowserRouter>
+  </ErrorBoundary>
   );
 };
 

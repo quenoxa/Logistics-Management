@@ -11,7 +11,7 @@ import {
   MaintenanceLog,
 } from '../types';
 
-const API_BASE_URL = '/api';
+const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || '/api';
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -28,6 +28,35 @@ apiClient.interceptors.request.use((config) => {
   }
   return config;
 });
+
+// Response interceptor to normalize error messages into safe strings (prevent React Error #31)
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const data = error.response?.data;
+    let safeMsg = 'An unexpected network error occurred';
+
+    if (typeof data === 'string') {
+      safeMsg = data;
+    } else if (data && typeof data === 'object') {
+      safeMsg = data.message || data.error || (data.code ? `Error ${data.code}: Request failed` : JSON.stringify(data));
+      if (typeof safeMsg !== 'string') {
+        safeMsg = JSON.stringify(safeMsg);
+      }
+    } else if (error.message) {
+      safeMsg = error.message;
+    }
+
+    // Ensure error has a clean string representation on both .message and .response.data.message
+    error.message = safeMsg;
+    if (error.response?.data && typeof error.response.data === 'object') {
+      error.response.data.message = safeMsg;
+      error.response.data.error = safeMsg;
+    }
+
+    return Promise.reject(error);
+  }
+);
 
 // Auth API
 export const authApi = {

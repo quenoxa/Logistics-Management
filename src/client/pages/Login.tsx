@@ -189,7 +189,7 @@ export const Login: React.FC = () => {
             {error && (
               <div className="mb-6 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2.5">
                 <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
-                <span>{error}</span>
+                <span>{typeof error === 'string' ? error : (error as any)?.message || 'Authentication failed'}</span>
               </div>
             )}
 
