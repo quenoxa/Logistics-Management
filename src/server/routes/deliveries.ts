@@ -250,8 +250,8 @@ router.get('/:id/history', authenticateToken, async (req: AuthenticatedRequest, 
   }
 });
 
-// Create delivery
-router.post('/', authenticateToken, requireRole('ADMIN', 'DISPATCHER'), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+// Create delivery (supports both / and /dispatch)
+router.post(['/', '/dispatch'], authenticateToken, requireRole('ADMIN', 'DISPATCHER'), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     let {
       orderId,
