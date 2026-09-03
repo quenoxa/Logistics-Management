@@ -16,7 +16,8 @@
     "db:generate": "prisma generate",
     "test:suite": "ts-node -P tsconfig.server.json tests/backend/test-suite.ts",
     "test:audit": "ts-node -P tsconfig.server.json tests/integration/audit-runner.ts",
-    "test:smoke": "ts-node -P tsconfig.server.json tests/smoke/smoke-test-runner.ts"
+    "test:smoke": "ts-node -P tsconfig.server.json tests/smoke/smoke-test-runner.ts",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
