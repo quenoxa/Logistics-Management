@@ -1,14 +1,15 @@
 datasource db {
-  provider = "sqlite"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-1.0.x", "rhel-openssl-3.0.x", "debian-openssl-1.1.x", "debian-openssl-3.0.x"]
 }
 
 model User {
-  id        String   @id @default(uuid())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   email     String   @unique
   password  String   // passwordHash
   name      String
@@ -25,10 +26,10 @@ model User {
 }
 
 model Vehicle {
-  id                  String           @id @default(uuid())
+  id                  String           @id @default(auto()) @map("_id") @db.ObjectId
   code                String           @unique // e.g. FL-8021
   vehicleNumber       String           @default("")
-  vin                 String           @unique @default(uuid())
+  vin                 String           @unique
   make                String           @default("Freightliner")
   manufacturer        String           @default("Freightliner")
   model               String
@@ -51,7 +52,7 @@ model Vehicle {
   nextMaintenanceDate DateTime?
   lastServiceDate     DateTime?
   nextServiceDueKm    Float?
-  assignedDriverId    String?          @unique
+  assignedDriverId    String?          @unique @db.ObjectId
   notes               String?
   createdAt           DateTime         @default(now())
   updatedAt           DateTime         @updatedAt
@@ -62,8 +63,8 @@ model Vehicle {
 }
 
 model MaintenanceLog {
-  id              String    @id @default(uuid())
-  vehicleId       String
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  vehicleId       String    @db.ObjectId
   type            String    @default("PREVENTATIVE")
   serviceType     String    @default("PREVENTATIVE")
   description     String
@@ -81,8 +82,8 @@ model MaintenanceLog {
 }
 
 model Driver {
-  id                String    @id @default(uuid())
-  userId            String?   @unique
+  id                String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String?   @unique @db.ObjectId
   code              String    @unique // e.g. DRV-104
   firstName         String
   lastName          String
@@ -108,7 +109,7 @@ model Driver {
 }
 
 model Order {
-  id              String    @id @default(uuid())
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
   orderNumber     String    @unique // e.g. ORD-2026-9041
   customerName    String
   customerEmail   String
@@ -134,9 +135,9 @@ model Order {
 }
 
 model Delivery {
-  id                    String                  @id @default(uuid())
+  id                    String                  @id @default(auto()) @map("_id") @db.ObjectId
   trackingNumber        String                  @unique // e.g. TRK-882910
-  orderId               String?                 @unique
+  orderId               String?                 @unique @db.ObjectId
   customerName          String                  @default("Valued Customer")
   customerPhone         String                  @default("+1-555-0199")
   pickupAddress         String                  @default("Central Distribution Hub")
@@ -147,8 +148,8 @@ model Delivery {
   deliveryLongitude     Float                   @default(-73.9352)
   packageDescription    String                  @default("General Pallet Freight")
   packageWeight         Float                   @default(150.0)
-  driverId              String?
-  vehicleId             String?
+  driverId              String?                 @db.ObjectId
+  vehicleId             String?                 @db.ObjectId
   status                String                  @default("PENDING") // PENDING, ASSIGNED, ACCEPTED, PICKED_UP, IN_TRANSIT, OUT_FOR_DELIVERY, DELIVERED, CANCELLED, FAILED
   priority              String                  @default("STANDARD")
   pickupScheduledAt     DateTime?               @default(now())
@@ -177,8 +178,8 @@ model Delivery {
 }
 
 model DeliveryTimelineEvent {
-  id           String   @id @default(uuid())
-  deliveryId   String
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  deliveryId   String   @db.ObjectId
   status       String
   title        String
   description  String
@@ -192,8 +193,8 @@ model DeliveryTimelineEvent {
 }
 
 model DeliveryStatusHistory {
-  id         String   @id @default(uuid())
-  deliveryId String
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  deliveryId String   @db.ObjectId
   status     String
   note       String?
   latitude   Float?
@@ -205,9 +206,9 @@ model DeliveryStatusHistory {
 }
 
 model Issue {
-  id          String    @id @default(uuid())
-  deliveryId  String?
-  driverId    String?
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  deliveryId  String?   @db.ObjectId
+  driverId    String?   @db.ObjectId
   type        String    // MECHANICAL, TRAFFIC, WEATHER, RECIPIENT_UNAVAILABLE, DAMAGED, OTHER
   description String
   priority    String    @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
@@ -220,8 +221,8 @@ model Issue {
 }
 
 model AuditLog {
-  id         String   @id @default(uuid())
-  userId     String?
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String?  @db.ObjectId
   user       String   @default("System")
   userName   String   @default("System")
   action     String
@@ -238,7 +239,7 @@ model AuditLog {
 }
 
 model SystemSetting {
-  id          String   @id @default(uuid())
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
   key         String   @unique
   value       String
   category    String   @default("GENERAL")

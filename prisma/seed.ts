@@ -141,7 +141,27 @@ async function main() {
 
   console.log('👤 Created User accounts (including driver1-driver5@example.com).');
 
-  // 3. Create 10 Drivers with linked User accounts
+  const driverUser7 = await prisma.user.create({
+    data: { email: 'pradeep.n@example.com', password: defaultPassword, name: 'Pradeep Nayak', role: 'DRIVER', phone: '+1-555-0110', isActive: true },
+  });
+  const driverUser8 = await prisma.user.create({
+    data: { email: 'gurpreet.s@example.com', password: defaultPassword, name: 'Gurpreet Singh', role: 'DRIVER', phone: '+1-555-0111', isActive: true },
+  });
+  const driverUser9 = await prisma.user.create({
+    data: { email: 'deepak.p@example.com', password: defaultPassword, name: 'Deepak Patil', role: 'DRIVER', phone: '+1-555-0112', isActive: true },
+  });
+  const driverUser10 = await prisma.user.create({
+    data: { email: 'kavita.s@example.com', password: defaultPassword, name: 'Kavita Sharma', role: 'DRIVER', phone: '+1-555-0113', isActive: true },
+  });
+
+  const driverUser11 = await prisma.user.create({
+    data: { email: 'driver11@example.com', password: defaultPassword, name: 'Sanjay Dutt', role: 'DRIVER', phone: '+1-555-0114', isActive: true },
+  });
+  const driverUser12 = await prisma.user.create({
+    data: { email: 'driver12@example.com', password: defaultPassword, name: 'Tarun Mehta', role: 'DRIVER', phone: '+1-555-0115', isActive: true },
+  });
+
+  // 3. Create 12 Drivers with linked User accounts
   const driverData = [
     { userId: driverUser1.id, code: 'DRV-101', firstName: 'Vikram', lastName: 'Driver', email: 'driver1@example.com', phone: '+1-555-0103', licenseNumber: 'DL-MH-2022-0091234', licenseClass: 'CDL_A', licenseExpiry: new Date('2028-11-15'), status: 'ON_DELIVERY', currentLatitude: 19.1136, currentLongitude: 73.0112, rating: 4.95, totalDeliveries: 412 },
     { userId: driverUser2.id, code: 'DRV-102', firstName: 'Ramesh', lastName: 'Gurjar', email: 'driver2@example.com', phone: '+1-555-0105', licenseNumber: 'DL-GJ-2021-0033201', licenseClass: 'CDL_A', licenseExpiry: new Date('2027-08-20'), status: 'ON_DELIVERY', currentLatitude: 18.9712, currentLongitude: 73.0245, rating: 4.88, totalDeliveries: 320 },
@@ -149,15 +169,19 @@ async function main() {
     { userId: driverUser4.id, code: 'DRV-104', firstName: 'Manoj', lastName: 'Yadav', email: 'driver4@example.com', phone: '+1-555-0107', licenseNumber: 'DL-DL-2021-0010928', licenseClass: 'CDL_B', licenseExpiry: new Date('2027-04-12'), status: 'ON_DELIVERY', currentLatitude: 19.0350, currentLongitude: 73.0320, rating: 4.82, totalDeliveries: 280 },
     { userId: driverUser5.id, code: 'DRV-105', firstName: 'Amit', lastName: 'Patel', email: 'driver5@example.com', phone: '+1-555-0108', licenseNumber: 'DL-TN-2019-0067290', licenseClass: 'CDL_B', licenseExpiry: new Date('2028-09-30'), status: 'AVAILABLE', currentLatitude: 19.2967, currentLongitude: 73.0631, rating: 4.92, totalDeliveries: 195 },
     { userId: fleetopsDriver.id, code: 'DRV-106', firstName: 'Vikram', lastName: 'Singh', email: 'driver@fleetops.io', phone: '+91 98200 12345', licenseNumber: 'DL-MH-2022-0091235', licenseClass: 'CDL_A', licenseExpiry: new Date('2028-11-15'), status: 'AVAILABLE', currentLatitude: 18.9712, currentLongitude: 73.0245, rating: 4.88, totalDeliveries: 320 },
-    { code: 'DRV-107', firstName: 'Pradeep', lastName: 'Nayak', email: 'pradeep.n@example.com', phone: '+1-555-0110', licenseNumber: 'DL-KA-2022-0044810', licenseClass: 'CDL_A', licenseExpiry: new Date('2029-06-18'), status: 'AVAILABLE', rating: 4.96, totalDeliveries: 380 },
-    { code: 'DRV-108', firstName: 'Gurpreet', lastName: 'Singh', email: 'gurpreet.s@example.com', phone: '+1-555-0111', licenseNumber: 'DL-PB-2020-0077291', licenseClass: 'CDL_B', licenseExpiry: new Date('2028-03-22'), status: 'OFF_DUTY', rating: 4.85, totalDeliveries: 210 },
-    { code: 'DRV-109', firstName: 'Deepak', lastName: 'Patil', email: 'deepak.p@example.com', phone: '+1-555-0112', licenseNumber: 'DL-MH-2021-0088192', licenseClass: 'CDL_A', licenseExpiry: new Date('2027-10-14'), status: 'OFF_DUTY', rating: 4.74, totalDeliveries: 175 },
-    { code: 'DRV-110', firstName: 'Kavita', lastName: 'Sharma', email: 'kavita.s@example.com', phone: '+1-555-0113', licenseNumber: 'DL-DL-2022-0022019', licenseClass: 'STANDARD', licenseExpiry: new Date('2028-07-08'), status: 'AVAILABLE', rating: 4.90, totalDeliveries: 110 },
+    { userId: driverUser7.id, code: 'DRV-107', firstName: 'Pradeep', lastName: 'Nayak', email: 'pradeep.n@example.com', phone: '+1-555-0110', licenseNumber: 'DL-KA-2022-0044810', licenseClass: 'CDL_A', licenseExpiry: new Date('2029-06-18'), status: 'AVAILABLE', rating: 4.96, totalDeliveries: 380 },
+    { userId: driverUser8.id, code: 'DRV-108', firstName: 'Gurpreet', lastName: 'Singh', email: 'gurpreet.s@example.com', phone: '+1-555-0111', licenseNumber: 'DL-PB-2020-0077291', licenseClass: 'CDL_B', licenseExpiry: new Date('2028-03-22'), status: 'OFF_DUTY', rating: 4.85, totalDeliveries: 210 },
+    { userId: driverUser9.id, code: 'DRV-109', firstName: 'Deepak', lastName: 'Patil', email: 'deepak.p@example.com', phone: '+1-555-0112', licenseNumber: 'DL-MH-2021-0088192', licenseClass: 'CDL_A', licenseExpiry: new Date('2027-10-14'), status: 'OFF_DUTY', rating: 4.74, totalDeliveries: 175 },
+    { userId: driverUser10.id, code: 'DRV-110', firstName: 'Kavita', lastName: 'Sharma', email: 'kavita.s@example.com', phone: '+1-555-0113', licenseNumber: 'DL-DL-2022-0022019', licenseClass: 'STANDARD', licenseExpiry: new Date('2028-07-08'), status: 'AVAILABLE', rating: 4.90, totalDeliveries: 110 },
+    { userId: driverUser11.id, code: 'DRV-111', firstName: 'Sanjay', lastName: 'Dutt', email: 'driver11@example.com', phone: '+1-555-0114', licenseNumber: 'DL-DL-2022-0022020', licenseClass: 'CDL_A', licenseExpiry: new Date('2028-08-08'), status: 'AVAILABLE', rating: 4.91, totalDeliveries: 112 },
+    { userId: driverUser12.id, code: 'DRV-112', firstName: 'Tarun', lastName: 'Mehta', email: 'driver12@example.com', phone: '+1-555-0115', licenseNumber: 'DL-DL-2022-0022021', licenseClass: 'CDL_B', licenseExpiry: new Date('2028-09-08'), status: 'AVAILABLE', rating: 4.89, totalDeliveries: 115 },
   ];
 
   const createdDrivers: any[] = [];
   for (const d of driverData) {
-    const driver = await prisma.driver.create({ data: d });
+    const dataToCreate: any = { ...d };
+    if (!dataToCreate.userId) delete dataToCreate.userId;
+    const driver = await prisma.driver.create({ data: dataToCreate });
     createdDrivers.push(driver);
   }
   console.log(`🚚 Created ${createdDrivers.length} Drivers.`);
@@ -168,19 +192,21 @@ async function main() {
     { code: 'VEH-402', vehicleNumber: 'TRK-402', vin: 'MAL88120391NJ3891', make: 'Ashok Leyland', manufacturer: 'Ashok Leyland', model: 'AVTR 4220 HG 6x2 Multi-Axle', year: 2024, licensePlate: 'MH-46-CL-8812', type: 'SEMI_TRAILER', status: 'IN_TRANSIT', capacity: 32000, maxPayloadKg: 32000, maxVolumeM3: 102.0, fuelType: 'DIESEL', currentFuelPercent: 68.0, currentMileageKm: 88400, mileage: 88400, currentLatitude: 18.9712, currentLongitude: 73.0245, lastMaintenanceDate: new Date('2026-07-10'), assignedDriverId: createdDrivers[1].id },
     { code: 'VEH-403', vehicleNumber: 'TRK-403', vin: 'MBB74190283PA8102', make: 'BharatBenz', manufacturer: 'BharatBenz', model: '3528R Heavy Duty Hauler', year: 2023, licensePlate: 'DL-1A-AA-7419', type: 'SEMI_TRAILER', status: 'IN_TRANSIT', capacity: 28500, maxPayloadKg: 28500, maxVolumeM3: 95.0, fuelType: 'DIESEL', currentFuelPercent: 74.0, currentMileageKm: 119200, mileage: 119200, currentLatitude: 19.2183, currentLongitude: 72.9781, lastMaintenanceDate: new Date('2026-05-20'), assignedDriverId: createdDrivers[2].id },
     { code: 'VEH-404', vehicleNumber: 'REE-404', vin: 'MTS61029384NY9014', make: 'Tata Motors', manufacturer: 'Tata Motors', model: 'Signa 4825.TK Coldliner Reefer', year: 2024, licensePlate: 'GJ-06-TR-6102', type: 'REEFER_TRUCK', status: 'IN_TRANSIT', capacity: 24000, maxPayloadKg: 24000, maxVolumeM3: 88.0, fuelType: 'DIESEL', currentFuelPercent: 61.5, currentMileageKm: 64100, mileage: 64100, currentLatitude: 19.0760, currentLongitude: 72.8777, lastMaintenanceDate: new Date('2026-08-01'), assignedDriverId: createdDrivers[3].id },
-    { code: 'EV-401', vehicleNumber: 'EV-401', vin: 'MMZ30219485NN3192', make: 'Mahindra', manufacturer: 'Mahindra', model: 'Zor Grand EV Express', year: 2024, licensePlate: 'KA-01-EV-3021', type: 'EV_VAN', status: 'AVAILABLE', capacity: 2200, maxPayloadKg: 2200, maxVolumeM3: 18.7, fuelType: 'ELECTRIC', currentFuelPercent: 91.0, currentMileageKm: 28400, mileage: 28400, currentLatitude: 19.2967, currentLongitude: 73.0631 },
-    { code: 'EV-402', vehicleNumber: 'EV-402', vin: 'MTA41092830PR8821', make: 'Tata Motors', manufacturer: 'Tata Motors', model: 'Ace EV Ultra Express', year: 2024, licensePlate: 'KA-05-EV-4109', type: 'EV_VAN', status: 'AVAILABLE', capacity: 1800, maxPayloadKg: 1800, maxVolumeM3: 15.0, fuelType: 'ELECTRIC', currentFuelPercent: 84.0, currentMileageKm: 31200, mileage: 31200, currentLatitude: 19.2282, currentLongitude: 73.0776 },
-    { code: 'BX-201', vehicleNumber: 'BOX-201', vin: 'MEP78210394MDC781', make: 'Eicher', manufacturer: 'Eicher', model: 'Pro 6028 Medium Duty Box', year: 2023, licensePlate: 'MH-12-BX-7821', type: 'BOX_TRUCK', status: 'AVAILABLE', capacity: 16500, maxPayloadKg: 16500, maxVolumeM3: 45.0, fuelType: 'DIESEL', currentFuelPercent: 78.0, currentMileageKm: 76500, mileage: 76500, currentLatitude: 19.0484, currentLongitude: 72.8857 },
-    { code: 'BX-202', vehicleNumber: 'BOX-202', vin: 'MAL55091823LCR991', make: 'Ashok Leyland', manufacturer: 'Ashok Leyland', model: 'Ecomet 1615 HE Container', year: 2022, licensePlate: 'TN-09-BX-5509', type: 'BOX_TRUCK', status: 'MAINTENANCE', capacity: 11200, maxPayloadKg: 11200, maxVolumeM3: 38.0, fuelType: 'DIESEL', currentFuelPercent: 45.0, currentMileageKm: 112000, mileage: 112000, currentLatitude: 19.2967, currentLongitude: 73.0631, nextMaintenanceDate: new Date(Date.now() - 1 * 24 * 3600 * 1000) },
-    { code: 'VN-101', vehicleNumber: 'VAN-101', vin: 'MMB90810294MP0192', make: 'Mahindra', manufacturer: 'Mahindra', model: 'Bolero Maxi Truck Plus', year: 2023, licensePlate: 'MH-02-VN-9081', type: 'SPRINTER_VAN', status: 'AVAILABLE', capacity: 1750, maxPayloadKg: 1750, maxVolumeM3: 14.5, fuelType: 'DIESEL', currentFuelPercent: 94.0, currentMileageKm: 42100, mileage: 42100, currentLatitude: 19.1028, currentLongitude: 72.8870 },
-    { code: 'VN-102', vehicleNumber: 'VAN-102', vin: 'MFU33190284NE6710', make: 'Force Motors', manufacturer: 'Force Motors', model: 'Urbania Express High Roof', year: 2022, licensePlate: 'HR-26-VN-3319', type: 'SPRINTER_VAN', status: 'AVAILABLE', capacity: 2200, maxPayloadKg: 2200, maxVolumeM3: 16.2, fuelType: 'GASOLINE', currentFuelPercent: 88.0, currentMileageKm: 59300, mileage: 59300, currentLatitude: 19.2967, currentLongitude: 73.0631 },
-    { code: 'VEH-405', vehicleNumber: 'TRK-405', vin: 'MTU88901928PN5520', make: 'Tata Motors', manufacturer: 'Tata Motors', model: 'Ultra T.7 EV Heavy Hauler', year: 2024, licensePlate: 'DL-1A-EV-8890', type: 'SEMI_TRAILER', status: 'AVAILABLE', capacity: 26000, maxPayloadKg: 26000, maxVolumeM3: 94.0, fuelType: 'ELECTRIC', currentFuelPercent: 96.0, currentMileageKm: 18200, mileage: 18200, currentLatitude: 19.2967, currentLongitude: 73.0631 },
-    { code: 'BX-203', vehicleNumber: 'BOX-203', vin: 'MEP22190182NH7781', make: 'Eicher', manufacturer: 'Eicher', model: 'Pro 3019 Heavy Freight Box', year: 2023, licensePlate: 'MH-04-BX-2219', type: 'BOX_TRUCK', status: 'AVAILABLE', capacity: 14500, maxPayloadKg: 14500, maxVolumeM3: 48.0, fuelType: 'DIESEL', currentFuelPercent: 72.0, currentMileageKm: 84000, mileage: 84000, currentLatitude: 19.2967, currentLongitude: 73.0631 },
+    { code: 'EV-401', vehicleNumber: 'EV-401', vin: 'MMZ30219485NN3192', make: 'Mahindra', manufacturer: 'Mahindra', model: 'Zor Grand EV Express', year: 2024, licensePlate: 'KA-01-EV-3021', type: 'EV_VAN', status: 'AVAILABLE', capacity: 2200, maxPayloadKg: 2200, maxVolumeM3: 18.7, fuelType: 'ELECTRIC', currentFuelPercent: 91.0, currentMileageKm: 28400, mileage: 28400, currentLatitude: 19.2967, currentLongitude: 73.0631, assignedDriverId: createdDrivers[4].id },
+    { code: 'EV-402', vehicleNumber: 'EV-402', vin: 'MTA41092830PR8821', make: 'Tata Motors', manufacturer: 'Tata Motors', model: 'Ace EV Ultra Express', year: 2024, licensePlate: 'KA-05-EV-4109', type: 'EV_VAN', status: 'AVAILABLE', capacity: 1800, maxPayloadKg: 1800, maxVolumeM3: 15.0, fuelType: 'ELECTRIC', currentFuelPercent: 84.0, currentMileageKm: 31200, mileage: 31200, currentLatitude: 19.2282, currentLongitude: 73.0776, assignedDriverId: createdDrivers[5].id },
+    { code: 'BX-201', vehicleNumber: 'BOX-201', vin: 'MEP78210394MDC781', make: 'Eicher', manufacturer: 'Eicher', model: 'Pro 6028 Medium Duty Box', year: 2023, licensePlate: 'MH-12-BX-7821', type: 'BOX_TRUCK', status: 'AVAILABLE', capacity: 16500, maxPayloadKg: 16500, maxVolumeM3: 45.0, fuelType: 'DIESEL', currentFuelPercent: 78.0, currentMileageKm: 76500, mileage: 76500, currentLatitude: 19.0484, currentLongitude: 72.8857, assignedDriverId: createdDrivers[6].id },
+    { code: 'BX-202', vehicleNumber: 'BOX-202', vin: 'MAL55091823LCR991', make: 'Ashok Leyland', manufacturer: 'Ashok Leyland', model: 'Ecomet 1615 HE Container', year: 2022, licensePlate: 'TN-09-BX-5509', type: 'BOX_TRUCK', status: 'MAINTENANCE', capacity: 11200, maxPayloadKg: 11200, maxVolumeM3: 38.0, fuelType: 'DIESEL', currentFuelPercent: 45.0, currentMileageKm: 112000, mileage: 112000, currentLatitude: 19.2967, currentLongitude: 73.0631, nextMaintenanceDate: new Date(Date.now() - 1 * 24 * 3600 * 1000), assignedDriverId: createdDrivers[7].id },
+    { code: 'VN-101', vehicleNumber: 'VAN-101', vin: 'MMB90810294MP0192', make: 'Mahindra', manufacturer: 'Mahindra', model: 'Bolero Maxi Truck Plus', year: 2023, licensePlate: 'MH-02-VN-9081', type: 'SPRINTER_VAN', status: 'AVAILABLE', capacity: 1750, maxPayloadKg: 1750, maxVolumeM3: 14.5, fuelType: 'DIESEL', currentFuelPercent: 94.0, currentMileageKm: 42100, mileage: 42100, currentLatitude: 19.1028, currentLongitude: 72.8870, assignedDriverId: createdDrivers[8].id },
+    { code: 'VN-102', vehicleNumber: 'VAN-102', vin: 'MFU33190284NE6710', make: 'Force Motors', manufacturer: 'Force Motors', model: 'Urbania Express High Roof', year: 2022, licensePlate: 'HR-26-VN-3319', type: 'SPRINTER_VAN', status: 'AVAILABLE', capacity: 2200, maxPayloadKg: 2200, maxVolumeM3: 16.2, fuelType: 'GASOLINE', currentFuelPercent: 88.0, currentMileageKm: 59300, mileage: 59300, currentLatitude: 19.2967, currentLongitude: 73.0631, assignedDriverId: createdDrivers[9].id },
+    { code: 'VEH-405', vehicleNumber: 'TRK-405', vin: 'MTU88901928PN5520', make: 'Tata Motors', manufacturer: 'Tata Motors', model: 'Ultra T.7 EV Heavy Hauler', year: 2024, licensePlate: 'DL-1A-EV-8890', type: 'SEMI_TRAILER', status: 'AVAILABLE', capacity: 26000, maxPayloadKg: 26000, maxVolumeM3: 94.0, fuelType: 'ELECTRIC', currentFuelPercent: 96.0, currentMileageKm: 18200, mileage: 18200, currentLatitude: 19.2967, currentLongitude: 73.0631, assignedDriverId: createdDrivers[10].id },
+    { code: 'BX-203', vehicleNumber: 'BOX-203', vin: 'MEP22190182NH7781', make: 'Eicher', manufacturer: 'Eicher', model: 'Pro 3019 Heavy Freight Box', year: 2023, licensePlate: 'MH-04-BX-2219', type: 'BOX_TRUCK', status: 'AVAILABLE', capacity: 14500, maxPayloadKg: 14500, maxVolumeM3: 48.0, fuelType: 'DIESEL', currentFuelPercent: 72.0, currentMileageKm: 84000, mileage: 84000, currentLatitude: 19.2967, currentLongitude: 73.0631, assignedDriverId: createdDrivers[11].id },
   ];
 
   const createdVehicles: any[] = [];
   for (const v of vehicleData) {
-    const vehicle = await prisma.vehicle.create({ data: v });
+    const dataToCreate: any = { ...v };
+    if (!dataToCreate.assignedDriverId) delete dataToCreate.assignedDriverId;
+    const vehicle = await prisma.vehicle.create({ data: dataToCreate });
     createdVehicles.push(vehicle);
   }
   console.log(`🚛 Created ${createdVehicles.length} Vehicles.`);
