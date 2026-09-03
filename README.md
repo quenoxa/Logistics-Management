@@ -179,7 +179,7 @@ cp .env.example .env
 Inside `.env`:
 ```env
 DATABASE_URL="mongodb+srv://<username>:<password>@cluster0.sgo45cn.mongodb.net/logistics?retryWrites=true&w=majority&appName=Cluster0"
-JWT_SECRET="nexus-fleetops-secret-key-production-2026"
+JWT_SECRET="your-jwt-secret-key"
 PORT=5000
 NODE_ENV="development"
 ```
