@@ -11,7 +11,6 @@ interface AuthContextType {
   logout: () => void;
   isAdmin: boolean;
   isDispatcher: boolean;
-  isFleetManager: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -74,7 +73,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const role = user?.role;
   const isAdmin = role === 'ADMIN';
   const isDispatcher = role === 'DISPATCHER' || role === 'ADMIN';
-  const isFleetManager = role === 'FLEET_MANAGER' || role === 'ADMIN';
 
   return (
     <AuthContext.Provider
@@ -87,7 +85,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         logout,
         isAdmin,
         isDispatcher,
-        isFleetManager,
       }}
     >
       {children}

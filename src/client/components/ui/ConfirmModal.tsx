@@ -27,20 +27,26 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
 }) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} maxWidth="sm">
-      <div className="space-y-4 text-xs">
-        <div className="flex items-start space-x-3 p-3 bg-ops-bg border border-ops-border rounded-lg">
-          <div className={`p-2 rounded-md shrink-0 border ${isDangerous ? 'bg-rose-950/60 text-rose-400 border-rose-800/50 shadow-glow-rose' : 'bg-amber-950/60 text-amber-400 border-amber-800/50 shadow-glow-amber'}`}>
-            <AlertTriangle className="w-4 h-4" />
+      <div className="space-y-4 text-sm font-sans">
+        <div className="flex items-start space-x-3 p-3.5 bg-[#0B1220] border border-[#263852] rounded-xl">
+          <div
+            className={`p-2 rounded-lg shrink-0 border ${
+              isDangerous
+                ? 'bg-[#3B2028] text-[#E26D7A] border-[#E26D7A]/40'
+                : 'bg-[#3B2D17] text-[#E5A93D] border-[#E5A93D]/40'
+            }`}
+          >
+            <AlertTriangle className="w-5 h-5" />
           </div>
-          <p className="text-ops-muted text-xs leading-relaxed font-sans">{message}</p>
+          <p className="text-[#A9B7C9] text-sm leading-relaxed">{message}</p>
         </div>
 
-        <div className="flex justify-end gap-2 pt-3 border-t border-ops-border">
+        <div className="flex justify-end gap-2.5 pt-3 border-t border-[#263852]">
           <button
             type="button"
             onClick={onClose}
             disabled={isLoading}
-            className="px-3.5 py-1.5 bg-ops-panel hover:bg-ops-panelHover border border-ops-border text-ops-muted hover:text-ops-text rounded-md font-mono text-xs font-semibold transition-colors"
+            className="px-4 py-2 bg-[#0B1220] hover:bg-[#18263B] border border-[#344A66] text-[#F8FAFC] rounded-lg text-sm font-medium transition-colors"
           >
             {cancelText}
           </button>
@@ -48,13 +54,13 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
             type="button"
             onClick={onConfirm}
             disabled={isLoading}
-            className={`px-4 py-1.5 font-mono text-xs font-bold rounded-md shadow-2xs uppercase tracking-wider transition-all disabled:opacity-50 ${
+            className={`px-4 py-2 text-sm font-semibold rounded-lg shadow-sm transition-all disabled:opacity-50 ${
               isDangerous
-                ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-glow-rose'
-                : 'bg-cyan-600 hover:bg-cyan-500 text-black shadow-glow-cyan'
+                ? 'bg-[#3B2028] hover:bg-[#4E2B35] text-[#E26D7A] border border-[#E26D7A]/40'
+                : 'bg-[#D4A84F] hover:bg-[#E5BC68] text-[#0B1220]'
             }`}
           >
-            {isLoading ? 'EXECUTING...' : confirmText}
+            {isLoading ? 'Executing...' : confirmText}
           </button>
         </div>
       </div>

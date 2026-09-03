@@ -7,6 +7,7 @@ import { Sidebar } from './components/common/Sidebar';
 
 // Pages
 import { Login } from './pages/Login';
+import { Register } from './pages/Register';
 import { Dashboard } from './pages/Dashboard';
 import { FleetDashboard } from './pages/FleetDashboard';
 import { DriverConsole } from './pages/DriverConsole';
@@ -19,6 +20,8 @@ import { LiveTracking } from './pages/LiveTracking';
 import { Reports } from './pages/Reports';
 import { Settings } from './pages/Settings';
 import { Admin } from './pages/Admin';
+import { Maintenance } from './pages/Maintenance';
+import { Issues } from './pages/Issues';
 
 const ProtectedLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isLoading } = useAuth();
@@ -26,11 +29,11 @@ const ProtectedLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-ops-bg flex items-center justify-center text-ops-text font-sans">
+      <div className="min-h-screen w-full bg-slate-50 flex items-center justify-center text-slate-800 font-sans">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-9 h-9 rounded-full border-2 border-ops-border border-t-cyan-400 animate-spin"></div>
-          <span className="text-xs font-mono tracking-wider text-cyan-400 font-semibold uppercase">
-            Initializing Command Terminal...
+          <div className="w-10 h-10 rounded-full border-3 border-slate-200 border-t-emerald-500 animate-spin"></div>
+          <span className="text-xs font-bold tracking-wider text-emerald-600 uppercase">
+            Initializing LOGISTIX...
           </span>
         </div>
       </div>
@@ -42,11 +45,11 @@ const ProtectedLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
   }
 
   return (
-    <div className="flex min-h-screen bg-ops-bg text-ops-text selection:bg-ops-accent selection:text-black">
+    <div className="flex min-h-screen w-full bg-slate-50 text-slate-800">
       <Sidebar isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
-      <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
+      <div className="flex-1 flex flex-col min-w-0 bg-slate-50 overflow-x-hidden min-h-screen">
         <Header onOpenMobileMenu={() => setIsMobileMenuOpen(true)} />
-        <main className="flex-1 p-4 md:p-6 lg:p-7 max-w-[1600px] w-full mx-auto">
+        <main className="flex-1 p-4 md:p-6 lg:p-8 w-full bg-slate-50 text-slate-800 max-w-7xl mx-auto">
           {children}
         </main>
       </div>
@@ -61,9 +64,6 @@ const RoleHomeRouter: React.FC = () => {
   if (user?.role === 'DRIVER') {
     return <DriverConsole />;
   }
-  if (user?.role === 'FLEET_MANAGER') {
-    return <FleetDashboard />;
-  }
   return <Dashboard />;
 };
 
@@ -74,6 +74,8 @@ export const App: React.FC = () => {
         <ToastProvider>
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/signup" element={<Register />} />
             <Route
               path="/"
               element={
@@ -87,6 +89,14 @@ export const App: React.FC = () => {
               element={
                 <ProtectedLayout>
                   <FleetDashboard />
+                </ProtectedLayout>
+              }
+            />
+            <Route
+              path="/driver"
+              element={
+                <ProtectedLayout>
+                  <DriverConsole />
                 </ProtectedLayout>
               }
             />
@@ -147,6 +157,22 @@ export const App: React.FC = () => {
               }
             />
             <Route
+              path="/maintenance"
+              element={
+                <ProtectedLayout>
+                  <Maintenance />
+                </ProtectedLayout>
+              }
+            />
+            <Route
+              path="/issues"
+              element={
+                <ProtectedLayout>
+                  <Issues />
+                </ProtectedLayout>
+              }
+            />
+            <Route
               path="/reports"
               element={
                 <ProtectedLayout>
@@ -164,6 +190,14 @@ export const App: React.FC = () => {
             />
             <Route
               path="/admin"
+              element={
+                <ProtectedLayout>
+                  <Admin />
+                </ProtectedLayout>
+              }
+            />
+            <Route
+              path="/users"
               element={
                 <ProtectedLayout>
                   <Admin />

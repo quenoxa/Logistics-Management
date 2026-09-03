@@ -9,160 +9,180 @@ interface StatusBadgeProps {
 export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, type = 'delivery', size = 'sm' }) => {
   const norm = (status || '').toUpperCase();
 
-  let badgeStyle = 'bg-slate-900/60 text-slate-300 border-slate-700/60';
-  let dotColor = 'bg-slate-400';
+  let badgeStyle = 'bg-slate-100 text-slate-700 border-slate-200';
+  let dotColor = 'bg-slate-500';
   let isPulse = false;
-  let label = norm.replace(/_/g, ' ');
+  let label = norm.charAt(0) + norm.slice(1).toLowerCase().replace(/_/g, ' ');
 
   if (type === 'delivery') {
     switch (norm) {
       case 'IN_TRANSIT':
-        badgeStyle = 'bg-sky-950/60 text-sky-300 border-sky-800/50 shadow-glow-cyan/20';
-        dotColor = 'bg-sky-400';
+        badgeStyle = 'bg-sky-50 text-sky-700 border-sky-200';
+        dotColor = 'bg-sky-500';
         isPulse = true;
-        label = 'IN TRANSIT';
+        label = 'In Transit';
         break;
       case 'OUT_FOR_DELIVERY':
-        badgeStyle = 'bg-cyan-950/60 text-cyan-300 border-cyan-800/50 shadow-glow-cyan/20';
-        dotColor = 'bg-cyan-400';
+        badgeStyle = 'bg-sky-50 text-sky-700 border-sky-200';
+        dotColor = 'bg-sky-500';
         isPulse = true;
-        label = 'OUT FOR DELIVERY';
+        label = 'Out for Delivery';
         break;
       case 'PICKED_UP':
-        badgeStyle = 'bg-indigo-950/60 text-indigo-300 border-indigo-800/50';
-        dotColor = 'bg-indigo-400';
-        label = 'PICKED UP';
+        badgeStyle = 'bg-sky-50 text-sky-700 border-sky-200';
+        dotColor = 'bg-sky-500';
+        label = 'Picked Up';
         break;
       case 'DISPATCHED':
-        badgeStyle = 'bg-slate-800/60 text-slate-200 border-slate-700/60';
-        dotColor = 'bg-slate-400';
-        label = 'DISPATCHED';
+        badgeStyle = 'bg-sky-50 text-sky-700 border-sky-200';
+        dotColor = 'bg-sky-500';
+        label = 'Dispatched';
         break;
       case 'DELIVERED':
-        badgeStyle = 'bg-emerald-950/60 text-emerald-300 border-emerald-800/50 shadow-glow-emerald/20';
-        dotColor = 'bg-emerald-400';
-        label = 'DELIVERED';
+        badgeStyle = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+        dotColor = 'bg-emerald-500';
+        label = 'Delivered';
+        break;
+      case 'PENDING':
+        badgeStyle = 'bg-amber-50 text-amber-700 border-amber-200';
+        dotColor = 'bg-amber-500';
+        label = 'Pending';
+        break;
+      case 'ASSIGNED':
+        badgeStyle = 'bg-blue-50 text-blue-700 border-blue-200';
+        dotColor = 'bg-blue-500';
+        label = 'Assigned';
+        break;
+      case 'ACCEPTED':
+        badgeStyle = 'bg-teal-50 text-teal-700 border-teal-200';
+        dotColor = 'bg-teal-500';
+        label = 'Accepted';
         break;
       case 'DELAYED':
-        badgeStyle = 'bg-amber-950/60 text-amber-300 border-amber-800/50 shadow-glow-amber/20';
-        dotColor = 'bg-amber-400';
+        badgeStyle = 'bg-amber-50 text-amber-700 border-amber-200';
+        dotColor = 'bg-amber-500';
         isPulse = true;
-        label = 'DELAYED';
+        label = 'Delayed';
         break;
       case 'FAILED':
       case 'CANCELLED':
-        badgeStyle = 'bg-rose-950/60 text-rose-300 border-rose-800/50';
-        dotColor = 'bg-rose-400';
-        label = norm === 'FAILED' ? 'FAILED' : 'CANCELLED';
+        badgeStyle = 'bg-rose-50 text-rose-700 border-rose-200';
+        dotColor = 'bg-rose-500';
+        label = norm === 'FAILED' ? 'Failed' : 'Cancelled';
         break;
     }
   } else if (type === 'vehicle') {
     switch (norm) {
       case 'ACTIVE':
-        badgeStyle = 'bg-emerald-950/60 text-emerald-300 border-emerald-800/50';
-        dotColor = 'bg-emerald-400';
-        label = 'ACTIVE';
+      case 'AVAILABLE':
+        badgeStyle = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+        dotColor = 'bg-emerald-500';
+        label = norm === 'ACTIVE' ? 'Active' : 'Available';
         break;
+      case 'ASSIGNED':
       case 'IN_TRANSIT':
-        badgeStyle = 'bg-sky-950/60 text-sky-300 border-sky-800/50';
-        dotColor = 'bg-sky-400';
-        isPulse = true;
-        label = 'IN TRANSIT';
+        badgeStyle = 'bg-sky-50 text-sky-700 border-sky-200';
+        dotColor = 'bg-sky-500';
+        isPulse = norm === 'IN_TRANSIT';
+        label = norm === 'ASSIGNED' ? 'Assigned' : 'In Transit';
         break;
       case 'MAINTENANCE':
-        badgeStyle = 'bg-rose-950/60 text-rose-300 border-rose-800/50 shadow-glow-rose/20';
-        dotColor = 'bg-rose-400';
+        badgeStyle = 'bg-orange-50 text-orange-700 border-orange-200';
+        dotColor = 'bg-orange-500';
         isPulse = true;
-        label = 'MAINTENANCE';
+        label = 'Maintenance';
         break;
       case 'IDLE':
       case 'INACTIVE':
-        badgeStyle = 'bg-slate-800/60 text-slate-300 border-slate-700/60';
+        badgeStyle = 'bg-slate-100 text-slate-700 border-slate-200';
         dotColor = 'bg-slate-400';
-        label = 'IDLE';
+        label = norm === 'IDLE' ? 'Idle' : 'Inactive';
         break;
     }
   } else if (type === 'driver') {
     switch (norm) {
       case 'AVAILABLE':
-        badgeStyle = 'bg-emerald-950/60 text-emerald-300 border-emerald-800/50 shadow-glow-emerald/20';
-        dotColor = 'bg-emerald-400';
-        label = 'AVAILABLE';
+        badgeStyle = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+        dotColor = 'bg-emerald-500';
+        label = 'Available';
         break;
       case 'ON_DELIVERY':
-        badgeStyle = 'bg-sky-950/60 text-sky-300 border-sky-800/50';
-        dotColor = 'bg-sky-400';
+        badgeStyle = 'bg-sky-50 text-sky-700 border-sky-200';
+        dotColor = 'bg-sky-500';
         isPulse = true;
-        label = 'ON DELIVERY';
+        label = 'On Delivery';
         break;
       case 'OFF_DUTY':
-        badgeStyle = 'bg-slate-800/60 text-slate-400 border-slate-700/60';
-        dotColor = 'bg-slate-500';
-        label = 'OFF DUTY';
+        badgeStyle = 'bg-slate-100 text-slate-700 border-slate-200';
+        dotColor = 'bg-slate-400';
+        label = 'Off Duty';
         break;
       case 'SUSPENDED':
-        badgeStyle = 'bg-rose-950/60 text-rose-300 border-rose-800/50';
-        dotColor = 'bg-rose-400';
-        label = 'SUSPENDED';
+        badgeStyle = 'bg-rose-50 text-rose-700 border-rose-200';
+        dotColor = 'bg-rose-500';
+        label = 'Suspended';
         break;
     }
   } else if (type === 'order') {
     switch (norm) {
       case 'PENDING':
-        badgeStyle = 'bg-amber-950/60 text-amber-300 border-amber-800/50';
-        dotColor = 'bg-amber-400';
-        label = 'PENDING';
+        badgeStyle = 'bg-amber-50 text-amber-700 border-amber-200';
+        dotColor = 'bg-amber-500';
+        label = 'Pending';
         break;
       case 'ASSIGNED':
-        badgeStyle = 'bg-sky-950/60 text-sky-300 border-sky-800/50';
-        dotColor = 'bg-sky-400';
-        label = 'ASSIGNED';
+        badgeStyle = 'bg-sky-50 text-sky-700 border-sky-200';
+        dotColor = 'bg-sky-500';
+        label = 'Assigned';
         break;
       case 'DELIVERED':
-        badgeStyle = 'bg-emerald-950/60 text-emerald-300 border-emerald-800/50';
-        dotColor = 'bg-emerald-400';
-        label = 'DELIVERED';
+        badgeStyle = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+        dotColor = 'bg-emerald-500';
+        label = 'Delivered';
         break;
       case 'CANCELLED':
-        badgeStyle = 'bg-rose-950/60 text-rose-300 border-rose-800/50';
-        dotColor = 'bg-rose-400';
-        label = 'CANCELLED';
+        badgeStyle = 'bg-rose-50 text-rose-700 border-rose-200';
+        dotColor = 'bg-rose-500';
+        label = 'Cancelled';
         break;
     }
   } else if (type === 'priority') {
     switch (norm) {
       case 'CRITICAL':
-        badgeStyle = 'bg-rose-950/70 text-rose-300 border-rose-700/60 shadow-glow-rose/30';
-        dotColor = 'bg-rose-400';
+      case 'URGENT':
+        badgeStyle = 'bg-rose-50 text-rose-700 border-rose-200';
+        dotColor = 'bg-rose-500';
         isPulse = true;
-        label = 'CRITICAL';
+        label = norm === 'URGENT' ? 'Urgent' : 'Critical';
         break;
       case 'HIGH':
-        badgeStyle = 'bg-amber-950/60 text-amber-300 border-amber-800/50';
-        dotColor = 'bg-amber-400';
-        label = 'HIGH';
+        badgeStyle = 'bg-orange-50 text-orange-700 border-orange-200';
+        dotColor = 'bg-orange-500';
+        label = 'High';
         break;
       case 'MEDIUM':
-        badgeStyle = 'bg-sky-950/60 text-sky-300 border-sky-800/50';
-        dotColor = 'bg-sky-400';
-        label = 'MEDIUM';
+      case 'STANDARD':
+        badgeStyle = 'bg-slate-100 text-slate-700 border-slate-200';
+        dotColor = 'bg-slate-500';
+        label = norm === 'STANDARD' ? 'Standard' : 'Medium';
         break;
       case 'LOW':
-        badgeStyle = 'bg-slate-800/60 text-slate-400 border-slate-700/60';
-        dotColor = 'bg-slate-500';
-        label = 'LOW';
+        badgeStyle = 'bg-slate-100 text-slate-600 border-slate-200';
+        dotColor = 'bg-slate-400';
+        label = 'Low';
         break;
     }
   } else if (type === 'cargo') {
-    badgeStyle = 'bg-ops-panel text-ops-muted border-ops-border';
-    dotColor = 'bg-ops-dim';
+    badgeStyle = 'bg-slate-100 text-slate-700 border-slate-200';
+    dotColor = 'bg-slate-400';
+    label = norm.replace(/_/g, ' ');
   }
 
-  const sizeClasses = size === 'sm' ? 'px-2 py-0.5 text-[10px]' : 'px-2.5 py-1 text-xs';
+  const sizeClasses = size === 'sm' ? 'px-2.5 py-0.5 text-xs font-semibold' : 'px-3 py-1 text-xs font-semibold';
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded font-mono font-bold tracking-wider border shadow-2xs ${sizeClasses} ${badgeStyle}`}
+      className={`inline-flex items-center gap-1.5 rounded-full font-sans border ${sizeClasses} ${badgeStyle}`}
     >
       <span className="relative flex h-1.5 w-1.5">
         {isPulse && (

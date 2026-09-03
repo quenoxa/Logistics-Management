@@ -9,7 +9,6 @@ const generateRouteWaypoints = (startLat: number, startLng: number, endLat: numb
   const points: [number, number][] = [];
   for (let i = 0; i <= count; i++) {
     const ratio = i / count;
-    // slight curve/jitter in route
     const jitter = Math.sin(ratio * Math.PI) * 0.015;
     const lat = startLat + (endLat - startLat) * ratio + jitter;
     const lng = startLng + (endLng - startLng) * ratio - jitter * 0.5;
@@ -23,7 +22,7 @@ router.get('/active', authenticateToken, async (req: AuthenticatedRequest, res: 
   try {
     const deliveries = await prisma.delivery.findMany({
       where: {
-        status: { in: ['DISPATCHED', 'PICKED_UP', 'IN_TRANSIT', 'OUT_FOR_DELIVERY', 'DELAYED'] },
+        status: { in: ['ASSIGNED', 'ACCEPTED', 'DISPATCHED', 'PICKED_UP', 'IN_TRANSIT', 'OUT_FOR_DELIVERY', 'DELAYED'] },
       },
       include: {
         order: true,
@@ -33,23 +32,23 @@ router.get('/active', authenticateToken, async (req: AuthenticatedRequest, res: 
     });
 
     const enriched = deliveries.map((d) => {
-      const startLat = d.order.pickupLat;
-      const startLng = d.order.pickupLng;
-      const endLat = d.order.deliveryLat;
-      const endLng = d.order.deliveryLng;
-      const progress = d.progressPercent / 100;
+      const startLat = d.pickupLatitude ?? d.order?.pickupLat ?? 40.7128;
+      const startLng = d.pickupLongitude ?? d.order?.pickupLng ?? -74.0060;
+      const endLat = d.deliveryLatitude ?? d.order?.deliveryLat ?? 40.7306;
+      const endLng = d.deliveryLongitude ?? d.order?.deliveryLng ?? -73.9352;
+      const progress = (d.progressPercent || 0) / 100;
 
-      // Current interpolated position if not set
       const currentLat = d.currentLat || parseFloat((startLat + (endLat - startLat) * progress).toFixed(6));
       const currentLng = d.currentLng || parseFloat((startLng + (endLng - startLng) * progress).toFixed(6));
 
-      // Calculate bearing / heading
       const y = Math.sin((endLng - startLng) * Math.PI / 180) * Math.cos(endLat * Math.PI / 180);
       const x = Math.cos(startLat * Math.PI / 180) * Math.sin(endLat * Math.PI / 180) -
                 Math.sin(startLat * Math.PI / 180) * Math.cos(endLat * Math.PI / 180) * Math.cos((endLng - startLng) * Math.PI / 180);
       const heading = Math.round(((Math.atan2(y, x) * 180 / Math.PI) + 360) % 360);
 
       const speedKmH = d.status === 'IN_TRANSIT' ? 62 : d.status === 'OUT_FOR_DELIVERY' ? 38 : 0;
+      const fuelPercent = d.vehicle?.currentFuelPercent ?? 85;
+      const cargoType = d.order?.cargoType ?? 'GENERAL_FREIGHT';
 
       return {
         ...d,
@@ -59,10 +58,10 @@ router.get('/active', authenticateToken, async (req: AuthenticatedRequest, res: 
           speedKmH,
           headingDeg: heading,
           engineTempC: 89.4,
-          batteryOrFuelPercent: d.vehicle.currentFuelPercent,
-          cargoTempC: d.order.cargoType === 'COLD_CHAIN' ? -18.2 : 21.0,
+          batteryOrFuelPercent: fuelPercent,
+          cargoTempC: cargoType === 'COLD_CHAIN' ? -18.2 : 21.0,
           signalStrength: '98%',
-          etaMinutesRemaining: Math.max(0, Math.round(d.routeDurationMin * (1 - progress))),
+          etaMinutesRemaining: Math.max(0, Math.round((d.routeDurationMin || 60) * (1 - progress))),
         },
       };
     });
@@ -73,7 +72,7 @@ router.get('/active', authenticateToken, async (req: AuthenticatedRequest, res: 
   }
 });
 
-// Get comprehensive route data for a specific delivery
+// Get route for a specific delivery
 router.get('/:id/route', authenticateToken, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
@@ -95,9 +94,12 @@ router.get('/:id/route', authenticateToken, async (req: AuthenticatedRequest, re
       return;
     }
 
-    const { pickupLat, pickupLng, deliveryLat, deliveryLng } = delivery.order;
-    const waypoints = generateRouteWaypoints(pickupLat, pickupLng, deliveryLat, deliveryLng, 12);
+    const pickupLat = delivery.pickupLatitude ?? delivery.order?.pickupLat ?? 40.7128;
+    const pickupLng = delivery.pickupLongitude ?? delivery.order?.pickupLng ?? -74.0060;
+    const deliveryLat = delivery.deliveryLatitude ?? delivery.order?.deliveryLat ?? 40.7306;
+    const deliveryLng = delivery.deliveryLongitude ?? delivery.order?.deliveryLng ?? -73.9352;
 
+    const waypoints = generateRouteWaypoints(pickupLat, pickupLng, deliveryLat, deliveryLng, 12);
     const progressRatio = (delivery.progressPercent || 0) / 100;
     const curLat = delivery.currentLat || (pickupLat + (deliveryLat - pickupLat) * progressRatio);
     const curLng = delivery.currentLng || (pickupLng + (deliveryLng - pickupLng) * progressRatio);
@@ -108,12 +110,12 @@ router.get('/:id/route', authenticateToken, async (req: AuthenticatedRequest, re
         origin: {
           lat: pickupLat,
           lng: pickupLng,
-          address: delivery.order.pickupAddress,
+          address: delivery.pickupAddress || delivery.order?.pickupAddress || 'Origin Depot',
         },
         destination: {
           lat: deliveryLat,
           lng: deliveryLng,
-          address: delivery.order.deliveryAddress,
+          address: delivery.deliveryAddress || delivery.order?.deliveryAddress || 'Destination',
         },
         currentPosition: {
           lat: curLat,
@@ -122,14 +124,14 @@ router.get('/:id/route', authenticateToken, async (req: AuthenticatedRequest, re
         waypoints,
         distanceKm: delivery.routeDistanceKm,
         durationMin: delivery.routeDurationMin,
-        etaMinutesRemaining: Math.max(0, Math.round(delivery.routeDurationMin * (1 - progressRatio))),
+        etaMinutesRemaining: Math.max(0, Math.round((delivery.routeDurationMin || 60) * (1 - progressRatio))),
       },
       telemetry: {
         speedKmH: delivery.status === 'IN_TRANSIT' ? 64 : delivery.status === 'OUT_FOR_DELIVERY' ? 35 : 0,
         headingDeg: 78,
         engineTempC: 88.5,
-        batteryOrFuelPercent: delivery.vehicle.currentFuelPercent,
-        cargoTempC: delivery.order.cargoType === 'COLD_CHAIN' ? -18.0 : 20.5,
+        batteryOrFuelPercent: delivery.vehicle?.currentFuelPercent ?? 85,
+        cargoTempC: delivery.order?.cargoType === 'COLD_CHAIN' ? -18.0 : 20.5,
         networkSignal: '5G - 96%',
       },
     });
@@ -171,7 +173,11 @@ router.post('/:id/simulate-step', authenticateToken, async (req: AuthenticatedRe
       nextStatus = 'IN_TRANSIT';
     }
 
-    const { pickupLat, pickupLng, deliveryLat, deliveryLng } = delivery.order;
+    const pickupLat = delivery.pickupLatitude ?? delivery.order?.pickupLat ?? 40.7128;
+    const pickupLng = delivery.pickupLongitude ?? delivery.order?.pickupLng ?? -74.0060;
+    const deliveryLat = delivery.deliveryLatitude ?? delivery.order?.deliveryLat ?? 40.7306;
+    const deliveryLng = delivery.deliveryLongitude ?? delivery.order?.deliveryLng ?? -73.9352;
+
     const ratio = nextProgress / 100;
     const jitter = Math.sin(ratio * Math.PI) * 0.01;
     const newLat = parseFloat((pickupLat + (deliveryLat - pickupLat) * ratio + jitter).toFixed(6));
@@ -184,30 +190,35 @@ router.post('/:id/simulate-step', authenticateToken, async (req: AuthenticatedRe
         status: nextStatus,
         currentLat: newLat,
         currentLng: newLng,
-        ...(nextStatus === 'DELIVERED' && { deliveryActualAt: new Date() }),
+        ...(nextStatus === 'DELIVERED' && { deliveryActualAt: new Date(), actualDeliveryTime: new Date() }),
       },
       include: { order: true, vehicle: true, driver: true },
     });
 
-    // Update vehicle position as well
-    await prisma.vehicle.update({
-      where: { id: delivery.vehicleId },
-      data: {
-        currentLat: newLat,
-        currentLng: newLng,
-        status: nextStatus === 'DELIVERED' ? 'ACTIVE' : 'IN_TRANSIT',
-      },
-    });
+    if (delivery.vehicleId) {
+      await prisma.vehicle.update({
+        where: { id: delivery.vehicleId },
+        data: {
+          currentLat: newLat,
+          currentLng: newLng,
+          status: nextStatus === 'DELIVERED' ? 'AVAILABLE' : 'IN_TRANSIT',
+        },
+      });
+    }
 
     if (nextStatus === 'DELIVERED') {
-      await prisma.order.update({
-        where: { id: delivery.orderId },
-        data: { status: 'DELIVERED' },
-      });
-      await prisma.driver.update({
-        where: { id: delivery.driverId },
-        data: { status: 'AVAILABLE', totalDeliveries: { increment: 1 } },
-      });
+      if (delivery.orderId) {
+        await prisma.order.update({
+          where: { id: delivery.orderId },
+          data: { status: 'DELIVERED' },
+        });
+      }
+      if (delivery.driverId) {
+        await prisma.driver.update({
+          where: { id: delivery.driverId },
+          data: { status: 'AVAILABLE', totalDeliveries: { increment: 1 } },
+        });
+      }
     }
 
     res.json({ delivery: updated });
@@ -221,7 +232,7 @@ router.post('/simulate-all', authenticateToken, async (req: AuthenticatedRequest
   try {
     const active = await prisma.delivery.findMany({
       where: {
-        status: { in: ['DISPATCHED', 'PICKED_UP', 'IN_TRANSIT', 'OUT_FOR_DELIVERY'] },
+        status: { in: ['ASSIGNED', 'ACCEPTED', 'DISPATCHED', 'PICKED_UP', 'IN_TRANSIT', 'OUT_FOR_DELIVERY'] },
       },
       include: { order: true, vehicle: true, driver: true },
     });
@@ -236,9 +247,14 @@ router.post('/simulate-all', authenticateToken, async (req: AuthenticatedRequest
       else if (nextProgress >= 80) nextStatus = 'OUT_FOR_DELIVERY';
       else if (nextProgress >= 20) nextStatus = 'IN_TRANSIT';
 
+      const pickupLat = d.pickupLatitude ?? d.order?.pickupLat ?? 40.7128;
+      const pickupLng = d.pickupLongitude ?? d.order?.pickupLng ?? -74.0060;
+      const deliveryLat = d.deliveryLatitude ?? d.order?.deliveryLat ?? 40.7306;
+      const deliveryLng = d.deliveryLongitude ?? d.order?.deliveryLng ?? -73.9352;
+
       const ratio = nextProgress / 100;
-      const newLat = parseFloat((d.order.pickupLat + (d.order.deliveryLat - d.order.pickupLat) * ratio).toFixed(6));
-      const newLng = parseFloat((d.order.pickupLng + (d.order.deliveryLng - d.order.pickupLng) * ratio).toFixed(6));
+      const newLat = parseFloat((pickupLat + (deliveryLat - pickupLat) * ratio).toFixed(6));
+      const newLng = parseFloat((pickupLng + (deliveryLng - pickupLng) * ratio).toFixed(6));
 
       const updated = await prisma.delivery.update({
         where: { id: d.id },
@@ -247,28 +263,34 @@ router.post('/simulate-all', authenticateToken, async (req: AuthenticatedRequest
           status: nextStatus,
           currentLat: newLat,
           currentLng: newLng,
-          ...(nextStatus === 'DELIVERED' && { deliveryActualAt: new Date() }),
+          ...(nextStatus === 'DELIVERED' && { deliveryActualAt: new Date(), actualDeliveryTime: new Date() }),
         },
       });
 
-      await prisma.vehicle.update({
-        where: { id: d.vehicleId },
-        data: {
-          currentLat: newLat,
-          currentLng: newLng,
-          status: nextStatus === 'DELIVERED' ? 'ACTIVE' : 'IN_TRANSIT',
-        },
-      });
+      if (d.vehicleId) {
+        await prisma.vehicle.update({
+          where: { id: d.vehicleId },
+          data: {
+            currentLat: newLat,
+            currentLng: newLng,
+            status: nextStatus === 'DELIVERED' ? 'AVAILABLE' : 'IN_TRANSIT',
+          },
+        });
+      }
 
       if (nextStatus === 'DELIVERED') {
-        await prisma.order.update({
-          where: { id: d.orderId },
-          data: { status: 'DELIVERED' },
-        });
-        await prisma.driver.update({
-          where: { id: d.driverId },
-          data: { status: 'AVAILABLE', totalDeliveries: { increment: 1 } },
-        });
+        if (d.orderId) {
+          await prisma.order.update({
+            where: { id: d.orderId },
+            data: { status: 'DELIVERED' },
+          });
+        }
+        if (d.driverId) {
+          await prisma.driver.update({
+            where: { id: d.driverId },
+            data: { status: 'AVAILABLE', totalDeliveries: { increment: 1 } },
+          });
+        }
       }
 
       updatedDeliveries.push(updated);

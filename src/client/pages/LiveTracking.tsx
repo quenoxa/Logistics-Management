@@ -14,7 +14,6 @@ import {
   MapPin,
   Send,
   Info,
-  Activity,
 } from 'lucide-react';
 import { trackingApi } from '../services/api';
 import { Delivery } from '../../shared/types';
@@ -25,7 +24,7 @@ import { useToast } from '../context/ToastContext';
 import { useAutoRefresh } from '../hooks/useAutoRefresh';
 
 export const LiveTracking: React.FC = () => {
-  const { success, error, info } = useToast();
+  const { success, error } = useToast();
   const [activeDeliveries, setActiveDeliveries] = useState<Delivery[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedRouteData, setSelectedRouteData] = useState<any | null>(null);
@@ -89,7 +88,7 @@ export const LiveTracking: React.FC = () => {
       setIsStepping(true);
       await trackingApi.simulateStep(selectedId, 6);
       if (!silent) {
-        success('GPS FIX STEPPED', 'Vehicle telematics advanced along national highway corridor.');
+        success('GPS Fix Advanced', 'Vehicle coordinates stepped along freight corridor.');
       }
       await fetchActiveDeliveries(false);
       await fetchSelectedRoute(selectedId);
@@ -105,7 +104,7 @@ export const LiveTracking: React.FC = () => {
     try {
       setIsStepping(true);
       const res = await trackingApi.simulateAll();
-      success('FLEET STEPPED', `Progressed ${res.updatedCount || (res as any).updated || 0} active vehicles along corridors.`);
+      success('Fleet Simulated', `Progressed ${res.updatedCount || (res as any).updated || 0} active vehicles.`);
       await fetchActiveDeliveries(false);
       if (selectedId) {
         await fetchSelectedRoute(selectedId);
@@ -134,92 +133,88 @@ export const LiveTracking: React.FC = () => {
     }));
 
   return (
-    <div className="space-y-5 pb-12">
-      {/* Page Command Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-ops-border pb-4">
+    <div className="space-y-6 pb-12 font-sans text-slate-800">
+      {/* Page Header */}
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-5">
         <div>
-          <div className="flex items-center space-x-2.5">
-            <h1 className="text-xl font-bold font-mono tracking-tight text-white uppercase flex items-center gap-2">
-              <span className="w-2 h-4 bg-cyan-400 rounded-xs"></span>
-              Corridor Telematics & Radar Room
+          <div className="flex items-center space-x-3">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+              Live Tracking & GPS Simulation
             </h1>
-            <span className="px-2.5 py-0.5 rounded-full bg-cyan-950/60 text-cyan-300 border border-cyan-800/50 text-[10px] font-mono font-bold flex items-center gap-1.5 shadow-glow-cyan/20">
-              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
-              {activeDeliveries.length} UNITS EN ROUTE
+            <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+              {activeDeliveries.length} Active Corridors
             </span>
           </div>
-          <p className="text-xs text-ops-muted mt-1 font-sans">
-            Real-time highway corridor positioning, telematics speed, battery health, and waypoint progression
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
+            Real-time GPS tracking simulation, vehicle telematics, route progression, and telemetry controls
           </p>
         </div>
 
         {/* Simulation Control Toolbar */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2.5">
           <button
             onClick={() => handleSimulateStep(false)}
             disabled={isStepping || !selectedId}
-            className="px-3 py-1.5 rounded-md bg-ops-surface hover:bg-ops-panel border border-ops-border text-ops-text text-xs font-mono font-semibold flex items-center gap-1.5 transition-all disabled:opacity-50 shadow-panel"
+            className="px-3.5 py-2.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold flex items-center gap-2 transition shadow-sm disabled:opacity-50"
           >
-            <Play className={`w-3.5 h-3.5 text-cyan-400 ${isStepping ? 'animate-spin' : ''}`} />
-            <span>STEP SELECTED</span>
+            <Play className={`w-3.5 h-3.5 text-emerald-600 ${isStepping ? 'animate-spin' : ''}`} />
+            <span>Step Selected</span>
           </button>
 
           <button
             onClick={handleSimulateAll}
             disabled={isStepping}
-            className="px-3 py-1.5 rounded-md bg-ops-surface hover:bg-ops-panel border border-ops-border text-ops-text text-xs font-mono font-semibold flex items-center gap-1.5 transition-all disabled:opacity-50 shadow-panel"
+            className="px-3.5 py-2.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold flex items-center gap-2 transition shadow-sm disabled:opacity-50"
           >
-            <RotateCw className={`w-3.5 h-3.5 text-cyan-400 ${isStepping ? 'animate-spin' : ''}`} />
-            <span>STEP ENTIRE FLEET</span>
+            <RotateCw className={`w-3.5 h-3.5 text-emerald-600 ${isStepping ? 'animate-spin' : ''}`} />
+            <span>Step Fleet</span>
           </button>
 
           <button
             onClick={() => setIsAutoPlaying(!isAutoPlaying)}
-            className={`px-4 py-1.5 rounded-md text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all ${
+            className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition shadow-sm ${
               isAutoPlaying
-                ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-glow-rose'
-                : 'bg-cyan-600 hover:bg-cyan-500 text-black shadow-glow-cyan'
+                ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200'
+                : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20'
             }`}
           >
-            {isAutoPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-            <span>{isAutoPlaying ? 'PAUSE AUTO-FEED' : 'START AUTO-FEED'}</span>
+            {isAutoPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+            <span>{isAutoPlaying ? 'Pause Feed' : 'Start Feed'}</span>
           </button>
         </div>
       </div>
 
       {/* Telemetry Notice Banner */}
-      <div className="p-3 bg-ops-surface border border-ops-border rounded-lg flex items-start space-x-2.5 text-xs text-ops-muted shadow-panel">
-        <Info className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
-        <div className="font-mono text-[11px]">
-          <span className="font-bold text-white uppercase">SIMULATED CORRIDOR TELEMATICS: </span>
-          <span className="text-ops-muted font-sans">
-            Vehicle positions and coordinates step along verified national logistics corridors (e.g. NH-48 Mumbai-Ahmedabad / Mumbai-Pune).
-          </span>
+      <div className="p-4 bg-emerald-50/60 border border-emerald-200 rounded-2xl flex items-start space-x-3 text-xs text-emerald-900">
+        <Info className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+        <div className="text-xs leading-relaxed">
+          <span className="font-bold">GPS Tracking Simulation Active: </span>
+          <span>Vehicle coordinates advance along national logistics corridors (NH-48 Mumbai-Delhi / Mumbai-Pune). Use controls to step forward.</span>
         </div>
       </div>
 
       {/* Main Grid: Left Vehicle Selector + Right Map & Telemetry Dashboard */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Side: Active Shipments Queue */}
-        <div className="bg-ops-surface border border-ops-border rounded-xl p-4 shadow-panel space-y-3">
-          <div className="flex items-center justify-between pb-2 border-b border-ops-border">
-            <h3 className="text-xs font-mono font-bold text-ops-text uppercase tracking-wider flex items-center gap-2">
-              <span className="w-1.5 h-3 bg-cyan-400 rounded-xs"></span>
+        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
               En Route Shipments ({activeDeliveries.length})
             </h3>
           </div>
 
-          <div className="divide-y divide-ops-border/40 max-h-[520px] overflow-y-auto space-y-2 pr-1">
+          <div className="divide-y divide-slate-100 max-h-[520px] overflow-y-auto space-y-2 pr-1">
             {isLoading ? (
               Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="p-2 space-y-2">
-                  <Skeleton className="h-4 w-3/4 bg-ops-panel" />
-                  <Skeleton className="h-3 w-1/2 bg-ops-panel" />
+                  <Skeleton className="h-4 w-3/4 bg-slate-100" />
+                  <Skeleton className="h-3 w-1/2 bg-slate-100" />
                 </div>
               ))
             ) : activeDeliveries.length === 0 ? (
-              <div className="py-12 text-center text-ops-dim font-mono text-xs">
-                NO ACTIVE FREIGHT EN ROUTE
+              <div className="py-14 text-center text-slate-400 text-xs">
+                No active shipments currently on road
               </div>
             ) : (
               activeDeliveries.map((del) => {
@@ -228,36 +223,36 @@ export const LiveTracking: React.FC = () => {
                   <div
                     key={del.id}
                     onClick={() => setSelectedId(del.id)}
-                    className={`pt-2.5 first:pt-0 p-3 rounded-lg cursor-pointer transition-all border ${
+                    className={`pt-2.5 first:pt-0 p-3 rounded-xl cursor-pointer transition border ${
                       isSelected
-                        ? 'bg-cyan-950/40 text-cyan-300 border-cyan-500/40 shadow-glow-cyan/20 ring-1 ring-cyan-500/20'
-                        : 'bg-ops-bg/60 hover:bg-ops-panel border-ops-border text-ops-text'
+                        ? 'bg-emerald-50 text-emerald-900 border-emerald-300 shadow-sm'
+                        : 'bg-white border-slate-200 hover:bg-slate-50 text-slate-700'
                     }`}
                   >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className={`font-mono font-bold text-xs ${isSelected ? 'text-cyan-400' : 'text-white'}`}>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className={`font-mono font-bold text-xs ${isSelected ? 'text-emerald-700' : 'text-slate-900'}`}>
                         #{del.trackingNumber}
                       </span>
                       <StatusBadge status={del.status} type="delivery" />
                     </div>
 
-                    <p className="text-xs truncate font-sans font-medium text-ops-muted">
-                      {del.order?.customerName}
+                    <p className="text-xs truncate font-semibold text-slate-800">
+                      {del.order?.customerName || del.customerName}
                     </p>
 
-                    <div className="mt-2 flex items-center justify-between text-[10px] font-mono">
-                      <span className="text-ops-dim">
+                    <div className="mt-2 flex items-center justify-between text-xs">
+                      <span className="text-slate-500">
                         {del.driver ? `${del.driver.firstName} ${del.driver.lastName}` : 'Unassigned'} ({del.vehicle?.code || 'VEH'})
                       </span>
-                      <span className="font-bold text-cyan-400">
+                      <span className="font-bold text-emerald-600 font-mono">
                         {del.progressPercent}%
                       </span>
                     </div>
 
                     {/* Mini Progress */}
-                    <div className="w-full h-1 rounded-full overflow-hidden mt-1.5 bg-ops-bg border border-ops-border/40">
+                    <div className="w-full h-1.5 rounded-full overflow-hidden mt-1.5 bg-slate-100 border border-slate-200">
                       <div
-                        className="bg-gradient-to-r from-cyan-500 to-emerald-400 h-full rounded-full shadow-glow-cyan"
+                        className="bg-emerald-500 h-full rounded-full"
                         style={{ width: `${del.progressPercent}%` }}
                       ></div>
                     </div>
@@ -269,17 +264,16 @@ export const LiveTracking: React.FC = () => {
         </div>
 
         {/* Right Side: Map & Telemetry Dashboard */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className="lg:col-span-2 space-y-5">
           {/* Leaflet Map */}
-          <div className="bg-ops-surface border border-ops-border rounded-xl p-4 shadow-panel space-y-3">
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3.5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-mono font-bold text-ops-text uppercase tracking-wider flex items-center gap-2">
-                <span className="w-1.5 h-3 bg-cyan-400 rounded-xs"></span>
-                Spatial Radar View
+              <span className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+                Live Route Visualizer
               </span>
               {selectedDelivery && (
-                <span className="text-xs font-mono text-cyan-400 font-bold">
-                  LAT: {selectedDelivery.currentLat?.toFixed(4)}, LNG: {selectedDelivery.currentLng?.toFixed(4)}
+                <span className="text-xs font-mono text-emerald-700 font-semibold">
+                  GPS: {selectedDelivery.currentLat?.toFixed(4)}, {selectedDelivery.currentLng?.toFixed(4)}
                 </span>
               )}
             </div>
@@ -294,49 +288,48 @@ export const LiveTracking: React.FC = () => {
 
           {/* Telemetry Sensor Dashboard */}
           {selectedDelivery && (
-            <div className="p-4 bg-ops-surface border border-ops-border rounded-xl shadow-panel space-y-3">
-              <h3 className="text-xs font-mono font-bold text-ops-text uppercase tracking-wider border-b border-ops-border pb-2 flex items-center gap-2">
-                <span className="w-1.5 h-3 bg-cyan-400 rounded-xs"></span>
-                Real-Time Telemetry Telemetry Sensors &bull; {selectedDelivery.vehicle?.code || 'Asset'}
+            <div className="p-5 bg-white border border-slate-200 rounded-2xl shadow-sm space-y-4">
+              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider border-b border-slate-200 pb-2.5 flex items-center gap-2">
+                <span>Telematics Dashboard &bull; {selectedDelivery.vehicle?.code || 'Asset'}</span>
               </h3>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                <div className="p-3 rounded-lg bg-ops-bg border border-ops-border">
-                  <span className="text-[10px] font-mono font-bold text-ops-dim uppercase flex items-center gap-1">
-                    <Gauge className="w-3.5 h-3.5 text-cyan-400" />
-                    <span>Speed Telemetry</span>
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                  <span className="text-xs text-slate-500 flex items-center gap-1.5">
+                    <Gauge className="w-4 h-4 text-sky-600" />
+                    <span>Speed</span>
                   </span>
-                  <span className="text-lg font-bold text-cyan-400 font-mono mt-1 block">
+                  <span className="text-xl font-bold text-slate-900 font-mono mt-1.5 block">
                     {selectedDelivery.status === 'IN_TRANSIT' ? '62 km/h' : '0 km/h'}
                   </span>
                 </div>
 
-                <div className="p-3 rounded-lg bg-ops-bg border border-ops-border">
-                  <span className="text-[10px] font-mono font-bold text-ops-dim uppercase flex items-center gap-1">
-                    <BatteryCharging className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Battery / Health</span>
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                  <span className="text-xs text-slate-500 flex items-center gap-1.5">
+                    <BatteryCharging className="w-4 h-4 text-emerald-600" />
+                    <span>Fuel Level</span>
                   </span>
-                  <span className="text-lg font-bold text-emerald-400 font-mono mt-1 block">
+                  <span className="text-xl font-bold text-emerald-600 font-mono mt-1.5 block">
                     {selectedDelivery.vehicle?.currentFuelPercent || 92}%
                   </span>
                 </div>
 
-                <div className="p-3 rounded-lg bg-ops-bg border border-ops-border">
-                  <span className="text-[10px] font-mono font-bold text-ops-dim uppercase flex items-center gap-1">
-                    <Thermometer className="w-3.5 h-3.5 text-sky-400" />
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                  <span className="text-xs text-slate-500 flex items-center gap-1.5">
+                    <Thermometer className="w-4 h-4 text-cyan-600" />
                     <span>Cargo Temp</span>
                   </span>
-                  <span className="text-lg font-bold text-sky-400 font-mono mt-1 block">
-                    {selectedDelivery.order?.cargoType === 'COLD_CHAIN' ? '-18.4 °C' : '26.1 °C'}
+                  <span className="text-xl font-bold text-slate-900 font-mono mt-1.5 block">
+                    {selectedDelivery.order?.cargoType === 'COLD_CHAIN' ? '-18.4 °C' : '24.5 °C'}
                   </span>
                 </div>
 
-                <div className="p-3 rounded-lg bg-ops-bg border border-ops-border">
-                  <span className="text-[10px] font-mono font-bold text-ops-dim uppercase flex items-center gap-1">
-                    <Compass className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Corridor Heading</span>
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                  <span className="text-xs text-slate-500 flex items-center gap-1.5">
+                    <Compass className="w-4 h-4 text-amber-600" />
+                    <span>Heading</span>
                   </span>
-                  <span className="text-lg font-bold text-amber-400 font-mono mt-1 block">
+                  <span className="text-xl font-bold text-slate-900 font-mono mt-1.5 block">
                     342° NNW
                   </span>
                 </div>

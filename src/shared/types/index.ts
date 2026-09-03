@@ -1,4 +1,4 @@
-export type UserRole = 'ADMIN' | 'DISPATCHER' | 'FLEET_MANAGER' | 'DRIVER';
+export type UserRole = 'ADMIN' | 'DISPATCHER' | 'DRIVER' | 'VIEWER';
 
 export interface User {
   id: string;
@@ -32,16 +32,19 @@ export interface Vehicle {
   code: string;
   vin: string;
   make: string;
+  manufacturer?: string;
   model: string;
   year: number;
   licensePlate: string;
   type: VehicleType | string;
   status: VehicleStatus | string;
   maxPayloadKg: number;
+  capacity?: number;
   maxVolumeM3: number;
   fuelType: 'DIESEL' | 'ELECTRIC' | 'GASOLINE' | 'HYBRID' | string;
   currentFuelPercent: number;
   currentMileageKm: number;
+  mileage?: number;
   currentLat?: number;
   currentLng?: number;
   lastServiceDate?: string;
@@ -164,9 +167,15 @@ export interface Delivery {
   vehicleId?: string;
   status: DeliveryStatus | string;
   priority?: PriorityLevel | string;
+  customerName?: string;
+  customerPhone?: string;
+  pickupAddress?: string;
+  deliveryAddress?: string;
+  packageWeight?: number;
   pickupScheduledAt?: string;
   pickupActualAt?: string;
   deliveryEstimatedAt?: string;
+  estimatedDeliveryTime?: string;
   deliveryActualAt?: string;
   actualDeliveryTime?: string;
   currentLat?: number;

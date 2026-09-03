@@ -6,6 +6,8 @@ import {
   CheckCircle2,
   Bell,
   RotateCw,
+  ShieldCheck,
+  Lock,
 } from 'lucide-react';
 import { settingsApi } from '../services/api';
 import { SystemSetting } from '../../shared/types';
@@ -51,7 +53,7 @@ export const Settings: React.FC = () => {
       setIsSaving(true);
       const updates = Object.entries(formData).map(([key, value]) => ({ key, value }));
       await settingsApi.bulkUpdate(updates);
-      success('CONFIG COMMITTED', 'System parameters updated across operational hub.');
+      success('Configuration Committed', 'System parameters updated across operational hub.');
     } catch (err: any) {
       error('Save Failed', err.response?.data?.error || 'Failed to save settings.');
     } finally {
@@ -61,124 +63,149 @@ export const Settings: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="space-y-6 pb-16">
-        <Skeleton className="h-10 w-64 bg-ops-panel" />
-        <Skeleton className="h-64 w-full rounded-lg bg-ops-panel" />
-        <Skeleton className="h-64 w-full rounded-lg bg-ops-panel" />
+      <div className="space-y-6 pb-16 font-sans text-slate-800">
+        <Skeleton className="h-10 w-64 bg-white" />
+        <Skeleton className="h-64 w-full rounded-2xl bg-white" />
+        <Skeleton className="h-64 w-full rounded-2xl bg-white" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 pb-16">
+    <div className="space-y-6 pb-12 font-sans text-slate-800">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-ops-border pb-4">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-5">
         <div>
-          <div className="flex items-center space-x-2.5">
-            <h1 className="text-xl font-bold font-mono tracking-tight text-white uppercase flex items-center gap-2">
-              <span className="w-2 h-4 bg-cyan-400 rounded-xs"></span>
-              System & Operations Governance
-            </h1>
-          </div>
-          <p className="text-xs text-ops-muted mt-1 font-sans">
-            Depot location, freight operating rules, telematics speed limits, and notification parameters
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            System & Operations Settings
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
+            Organization details, hub depot locations, operational thresholds, and security parameters
           </p>
         </div>
 
         <button
           onClick={handleSaveAll}
           disabled={isSaving}
-          className="px-4 py-2 rounded-md bg-cyan-600 hover:bg-cyan-500 text-black text-xs font-mono font-bold uppercase tracking-wider inline-flex items-center gap-1.5 shadow-glow-cyan transition-all disabled:opacity-50"
+          className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold inline-flex items-center gap-2 shadow-md shadow-emerald-600/20 transition disabled:opacity-50"
         >
-          <Save className="w-3.5 h-3.5" />
-          <span>{isSaving ? 'SAVING...' : 'SAVE CONFIGURATION'}</span>
+          <Save className="w-4 h-4" />
+          <span>{isSaving ? 'Saving...' : 'Save Configuration'}</span>
         </button>
       </div>
 
-      <form onSubmit={handleSaveAll} className="space-y-5">
-        {/* Section 1: Organization & Primary Hub Depot */}
-        <div className="bg-ops-surface border border-ops-border rounded-xl p-5 shadow-panel space-y-4">
-          <h3 className="text-xs font-mono font-bold text-ops-text uppercase tracking-wider flex items-center gap-2 border-b border-ops-border pb-2">
-            <span className="w-1.5 h-3 bg-cyan-400 rounded-xs"></span>
-            Organization & Primary Hub Depot
-          </h3>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-sans">
-            <div>
-              <label className="text-ops-dim font-mono text-[11px] font-bold uppercase block mb-1">Company Entity Name</label>
-              <input
-                type="text"
-                value={formData['company_name'] || ''}
-                onChange={(e) => handleChange('company_name', e.target.value)}
-                className="w-full px-3 py-2 bg-ops-bg border border-ops-border rounded-lg text-xs text-ops-text focus:border-cyan-500 font-mono"
-              />
-            </div>
-            <div>
-              <label className="text-ops-dim font-mono text-[11px] font-bold uppercase block mb-1">Support Contact Email</label>
-              <input
-                type="email"
-                value={formData['support_email'] || ''}
-                onChange={(e) => handleChange('support_email', e.target.value)}
-                className="w-full px-3 py-2 bg-ops-bg border border-ops-border rounded-lg text-xs font-mono text-ops-text focus:border-cyan-500"
-              />
-            </div>
+      <form onSubmit={handleSaveAll} className="space-y-6">
+        {/* Organization Card */}
+        <div className="p-6 bg-white border border-slate-200 rounded-2xl shadow-sm space-y-4">
+          <div className="flex items-center space-x-2 pb-3 border-b border-slate-200">
+            <Building className="w-5 h-5 text-emerald-600" />
+            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+              Organization & Hub Parameters
+            </h3>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-sans">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
             <div>
-              <label className="text-ops-dim font-mono text-[11px] font-bold uppercase block mb-1">Primary Central Hub Facility</label>
+              <label className="block font-bold text-slate-700 mb-1">Hub Name</label>
               <input
                 type="text"
-                value={formData['hub_name'] || ''}
+                value={formData['hub_name'] || 'LOGISTIX Central Hub'}
                 onChange={(e) => handleChange('hub_name', e.target.value)}
-                className="w-full px-3 py-2 bg-ops-bg border border-ops-border rounded-lg text-xs text-ops-text focus:border-cyan-500 font-mono"
+                className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900"
               />
             </div>
+
             <div>
-              <label className="text-ops-dim font-mono text-[11px] font-bold uppercase block mb-1">Facility Physical Address</label>
+              <label className="block font-bold text-slate-700 mb-1">Depot Address</label>
               <input
                 type="text"
-                value={formData['hub_address'] || ''}
-                onChange={(e) => handleChange('hub_address', e.target.value)}
-                className="w-full px-3 py-2 bg-ops-bg border border-ops-border rounded-lg text-xs text-ops-text focus:border-cyan-500 font-mono"
+                value={formData['depot_address'] || 'Central Distribution Hub, Sector 18'}
+                onChange={(e) => handleChange('depot_address', e.target.value)}
+                className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900"
+              />
+            </div>
+
+            <div>
+              <label className="block font-bold text-slate-700 mb-1">Depot Latitude</label>
+              <input
+                type="text"
+                value={formData['depot_lat'] || '19.0760'}
+                onChange={(e) => handleChange('depot_lat', e.target.value)}
+                className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 font-mono"
+              />
+            </div>
+
+            <div>
+              <label className="block font-bold text-slate-700 mb-1">Depot Longitude</label>
+              <input
+                type="text"
+                value={formData['depot_lng'] || '72.8777'}
+                onChange={(e) => handleChange('depot_lng', e.target.value)}
+                className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 font-mono"
               />
             </div>
           </div>
         </div>
 
-        {/* Section 2: Fleet Operating Thresholds */}
-        <div className="bg-ops-surface border border-ops-border rounded-xl p-5 shadow-panel space-y-4">
-          <h3 className="text-xs font-mono font-bold text-ops-text uppercase tracking-wider flex items-center gap-2 border-b border-ops-border pb-2">
-            <span className="w-1.5 h-3 bg-cyan-400 rounded-xs"></span>
-            Operating Parameters & Telematics Thresholds
-          </h3>
+        {/* Operations Card */}
+        <div className="p-6 bg-white border border-slate-200 rounded-2xl shadow-sm space-y-4">
+          <div className="flex items-center space-x-2 pb-3 border-b border-slate-200">
+            <Sliders className="w-5 h-5 text-emerald-600" />
+            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+              Operational Thresholds
+            </h3>
+          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-mono">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
             <div>
-              <label className="text-ops-dim text-[11px] font-bold uppercase block mb-1">Highway Speed Limit (km/h)</label>
+              <label className="block font-bold text-slate-700 mb-1">Speed Limit Alert (km/h)</label>
               <input
                 type="number"
-                value={formData['speed_limit_kmh'] || '80'}
-                onChange={(e) => handleChange('speed_limit_kmh', e.target.value)}
-                className="w-full px-3 py-2 bg-ops-bg border border-ops-border rounded-lg text-xs text-cyan-400 font-bold focus:border-cyan-500"
+                value={formData['speed_alert_threshold'] || '80'}
+                onChange={(e) => handleChange('speed_alert_threshold', e.target.value)}
+                className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 font-mono"
               />
             </div>
+
             <div>
-              <label className="text-ops-dim text-[11px] font-bold uppercase block mb-1">Max Driver Shift (Hours)</label>
+              <label className="block font-bold text-slate-700 mb-1">Max Daily Driver Hours</label>
               <input
                 type="number"
                 value={formData['max_driver_hours'] || '10'}
                 onChange={(e) => handleChange('max_driver_hours', e.target.value)}
-                className="w-full px-3 py-2 bg-ops-bg border border-ops-border rounded-lg text-xs text-cyan-400 font-bold focus:border-cyan-500"
+                className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 font-mono"
               />
             </div>
+          </div>
+        </div>
+
+        {/* Security Card */}
+        <div className="p-6 bg-white border border-slate-200 rounded-2xl shadow-sm space-y-4">
+          <div className="flex items-center space-x-2 pb-3 border-b border-slate-200">
+            <ShieldCheck className="w-5 h-5 text-emerald-600" />
+            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+              Security & Authentication
+            </h3>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
             <div>
-              <label className="text-ops-dim text-[11px] font-bold uppercase block mb-1">Default Base Currency</label>
+              <label className="block font-bold text-slate-700 mb-1">JWT Token Expiry (Hours)</label>
               <input
-                type="text"
-                value={formData['currency'] || 'INR'}
-                onChange={(e) => handleChange('currency', e.target.value)}
-                className="w-full px-3 py-2 bg-ops-bg border border-ops-border rounded-lg text-xs text-white font-bold focus:border-cyan-500"
+                type="number"
+                value={formData['jwt_expiry_hours'] || '24'}
+                onChange={(e) => handleChange('jwt_expiry_hours', e.target.value)}
+                className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 font-mono"
+              />
+            </div>
+
+            <div>
+              <label className="block font-bold text-slate-700 mb-1">Password Hashing Salt Rounds</label>
+              <input
+                type="number"
+                disabled
+                value="10 (Bcrypt Verified)"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-500 font-mono"
               />
             </div>
           </div>

@@ -153,11 +153,12 @@ router.post('/', authenticateToken, async (req: AuthenticatedRequest, res: Respo
       notes,
     } = req.body;
 
-    if (!customerName || !customerAddress || !pickupAddress || !deliveryAddress || !weightKg) {
-      res.status(400).json({ error: 'Missing required order fields' });
+    if (!customerName || !pickupAddress || !deliveryAddress || !weightKg) {
+      res.status(400).json({ error: 'Missing required order fields: customerName, pickupAddress, deliveryAddress, and weightKg are required' });
       return;
     }
 
+    const finalCustomerAddress = customerAddress || deliveryAddress || 'Customer Primary Address';
     const autoPickupCoords = (!pickupLat || !pickupLng) ? getRandomMetroCoords() : { lat: pickupLat, lng: pickupLng };
     const autoDeliveryCoords = (!deliveryLat || !deliveryLng) ? getRandomMetroCoords() : { lat: deliveryLat, lng: deliveryLng };
 
@@ -169,8 +170,8 @@ router.post('/', authenticateToken, async (req: AuthenticatedRequest, res: Respo
         orderNumber: generatedOrderNumber,
         customerName,
         customerEmail: customerEmail || `${customerName.toLowerCase().replace(/\s+/g, '.')}@client.com`,
-        customerPhone: customerPhone || '+1-555-0199',
-        customerAddress,
+        customerPhone: customerPhone || '+91-98765-43210',
+        customerAddress: finalCustomerAddress,
         pickupAddress,
         pickupLat: Number(autoPickupCoords.lat),
         pickupLng: Number(autoPickupCoords.lng),

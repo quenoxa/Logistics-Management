@@ -12,7 +12,7 @@ interface MetricCardProps {
     label?: string;
   };
   icon?: React.ReactNode;
-  variant?: 'default' | 'accent' | 'emerald' | 'rose' | 'cyan' | 'amber';
+  variant?: 'default' | 'gold' | 'emerald' | 'rose' | 'blue' | 'amber' | 'accent' | 'cyan';
   onClick?: () => void;
 }
 
@@ -26,54 +26,53 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   variant = 'default',
   onClick,
 }) => {
-  const variantGlow: Record<string, string> = {
-    default: 'border-ops-border hover:border-ops-borderLight',
-    accent: 'border-cyan-900/50 hover:border-cyan-500/50 shadow-glow-cyan',
-    cyan: 'border-cyan-900/50 hover:border-cyan-500/50 shadow-glow-cyan',
-    emerald: 'border-emerald-900/50 hover:border-emerald-500/50 shadow-glow-emerald',
-    amber: 'border-amber-900/50 hover:border-amber-500/50 shadow-glow-amber',
-    rose: 'border-rose-900/50 hover:border-rose-500/50 shadow-glow-rose',
-  };
+  const iconBg =
+    variant === 'emerald' || variant === 'gold' || variant === 'accent'
+      ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
+      : variant === 'rose'
+      ? 'bg-rose-50 text-rose-600 border-rose-200'
+      : variant === 'blue' || variant === 'cyan'
+      ? 'bg-sky-50 text-sky-600 border-sky-200'
+      : variant === 'amber'
+      ? 'bg-amber-50 text-amber-600 border-amber-200'
+      : 'bg-slate-100 text-slate-600 border-slate-200';
 
   return (
     <div
       onClick={onClick}
-      className={`p-4 bg-ops-surface border rounded-lg shadow-panel transition-all relative overflow-hidden group ${
-        variantGlow[variant] || variantGlow.default
-      } ${onClick ? 'cursor-pointer hover:bg-ops-panel' : ''}`}
+      className={`p-5 bg-white border border-slate-200 rounded-2xl shadow-sm transition-all relative overflow-hidden group hover:shadow-md hover:border-slate-300 ${
+        onClick ? 'cursor-pointer' : ''
+      }`}
     >
-      {/* Top subtle glow line */}
-      <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:via-cyan-400/40 transition-all"></div>
-
       <div className="flex items-center justify-between">
-        <span className="text-[11px] font-mono font-semibold tracking-wider text-ops-dim uppercase">
+        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
           {label}
         </span>
         {icon && (
-          <div className="p-1.5 rounded-md bg-ops-bg border border-ops-border/60 text-ops-muted group-hover:text-ops-accent transition-colors">
+          <div className={`p-2.5 rounded-xl border ${iconBg} transition-colors`}>
             {icon}
           </div>
         )}
       </div>
 
-      <div className="mt-2.5 flex items-baseline space-x-1.5">
-        <span className="text-2xl font-mono font-bold text-ops-text tracking-tight group-hover:text-white transition-colors">
+      <div className="mt-3 flex items-baseline space-x-1.5">
+        <span className="text-3xl font-bold tracking-tight text-slate-900">
           {value}
         </span>
-        {unit && <span className="text-xs font-mono text-ops-dim font-medium">{unit}</span>}
+        {unit && <span className="text-xs font-medium text-slate-500">{unit}</span>}
       </div>
 
       {(subtext || trend) && (
-        <div className="mt-2 flex items-center justify-between text-xs text-ops-dim border-t border-ops-border/40 pt-1.5">
-          {subtext && <span className="truncate text-[11px] text-ops-muted font-medium">{subtext}</span>}
+        <div className="mt-3 flex items-center justify-between text-xs text-slate-500 border-t border-slate-100 pt-2.5">
+          {subtext && <span className="truncate text-xs text-slate-500">{subtext}</span>}
           {trend && (
             <span
-              className={`inline-flex items-center font-mono text-[11px] font-bold ml-auto ${
+              className={`inline-flex items-center font-semibold text-xs ml-auto ${
                 trend.direction === 'up'
-                  ? 'text-emerald-400'
+                  ? 'text-emerald-600'
                   : trend.direction === 'down'
-                  ? 'text-rose-400'
-                  : 'text-ops-dim'
+                  ? 'text-rose-600'
+                  : 'text-slate-500'
               }`}
             >
               {trend.direction === 'up' && <ArrowUpRight className="w-3.5 h-3.5 mr-0.5" />}

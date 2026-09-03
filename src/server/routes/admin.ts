@@ -42,6 +42,12 @@ router.post('/users', async (req: AuthenticatedRequest, res: Response): Promise<
       return;
     }
 
+    const ALLOWED_ROLES = ['ADMIN', 'DISPATCHER', 'DRIVER', 'VIEWER'];
+    if (role && !ALLOWED_ROLES.includes(role)) {
+      res.status(400).json({ error: `Invalid role: '${role}'. Allowed roles are: ADMIN, DISPATCHER, DRIVER, VIEWER` });
+      return;
+    }
+
     const existing = await prisma.user.findUnique({
       where: { email: email.toLowerCase().trim() },
     });
@@ -93,6 +99,12 @@ router.put('/users/:id', async (req: AuthenticatedRequest, res: Response): Promi
   try {
     const { id } = req.params;
     const { name, role, status, password } = req.body;
+
+    const ALLOWED_ROLES = ['ADMIN', 'DISPATCHER', 'DRIVER', 'VIEWER'];
+    if (role && !ALLOWED_ROLES.includes(role)) {
+      res.status(400).json({ error: `Invalid role: '${role}'. Allowed roles are: ADMIN, DISPATCHER, DRIVER, VIEWER` });
+      return;
+    }
 
     const dataToUpdate: any = {};
     if (name) dataToUpdate.name = name.trim();
@@ -188,7 +200,7 @@ router.get('/audit-logs', async (req: AuthenticatedRequest, res: Response): Prom
       orderBy: { createdAt: 'desc' },
       take: Number(limit),
       include: {
-        user: {
+        userRef: {
           select: {
             id: true,
             email: true,

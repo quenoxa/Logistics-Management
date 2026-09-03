@@ -12,9 +12,11 @@ import {
   ShieldCheck,
   Smartphone,
   Layers,
+  Wrench,
+  AlertCircle,
   X,
-  Radio,
-  Cpu,
+  LogOut,
+  Hexagon,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -23,7 +25,7 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
-  const { user, isAdmin } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
   const role = user?.role || 'DISPATCHER';
 
   interface NavSection {
@@ -44,8 +46,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       visible: role !== 'DRIVER',
       items: [
         {
-          to: role === 'FLEET_MANAGER' ? '/fleet-dashboard' : '/',
-          label: 'Command Center',
+          to: '/',
+          label: 'Dashboard',
           icon: <LayoutDashboard className="w-4 h-4" />,
           visible: true,
         },
@@ -57,16 +59,22 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         },
         {
           to: '/deliveries',
-          label: 'Shipment Manifest',
+          label: 'Deliveries',
           icon: <Truck className="w-4 h-4" />,
           visible: role !== 'DRIVER',
         },
         {
           to: '/tracking',
-          label: 'Corridor Telematics',
+          label: 'Live Tracking',
           icon: <Navigation className="w-4 h-4" />,
           visible: role !== 'DRIVER',
           badge: 'LIVE',
+        },
+        {
+          to: '/issues',
+          label: 'Issues & Incidents',
+          icon: <AlertCircle className="w-4 h-4 text-rose-400" />,
+          visible: role !== 'DRIVER',
         },
       ],
     },
@@ -76,30 +84,36 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       items: [
         {
           to: '/vehicles',
-          label: 'Vehicle Inventory',
+          label: 'Vehicles',
           icon: <Truck className="w-4 h-4" />,
           visible: role !== 'DRIVER',
         },
         {
           to: '/drivers',
-          label: 'Commercial Drivers',
+          label: 'Drivers',
           icon: <Users className="w-4 h-4" />,
           visible: role !== 'DRIVER',
         },
         {
+          to: '/maintenance',
+          label: 'Maintenance',
+          icon: <Wrench className="w-4 h-4 text-amber-400" />,
+          visible: role !== 'DRIVER',
+        },
+        {
           to: '/fleet-dashboard',
-          label: 'Fleet Health & Bay',
+          label: 'Fleet Health',
           icon: <Layers className="w-4 h-4" />,
           visible: role !== 'DRIVER',
         },
       ],
     },
     {
-      title: 'IN-CAB TERMINAL',
+      title: 'DRIVER TERMINAL',
       visible: role === 'DRIVER' || isAdmin,
       items: [
         {
-          to: '/driver-console',
+          to: '/driver',
           label: 'Driver Console',
           icon: <Smartphone className="w-4 h-4" />,
           visible: true,
@@ -112,46 +126,46 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       items: [
         {
           to: '/reports',
-          label: 'Operational Reports',
+          label: 'Reports & Intelligence',
           icon: <BarChart3 className="w-4 h-4" />,
           visible: role !== 'DRIVER',
         },
       ],
     },
     {
-      title: 'GOVERNANCE',
-      visible: isAdmin || role === 'FLEET_MANAGER',
+      title: 'ADMINISTRATION',
+      visible: isAdmin,
       items: [
         {
           to: '/settings',
-          label: 'System Settings',
+          label: 'Settings',
           icon: <SettingsIcon className="w-4 h-4" />,
           visible: isAdmin,
         },
         {
-          to: '/admin',
-          label: 'Security & Audit',
+          to: '/users',
+          label: 'Users & Security',
           icon: <ShieldCheck className="w-4 h-4" />,
-          visible: isAdmin || role === 'FLEET_MANAGER',
+          visible: isAdmin,
         },
       ],
     },
   ];
 
   const sidebarContent = (
-    <div className="flex flex-col h-full bg-ops-surface text-ops-text select-none border-r border-ops-border">
-      {/* Brand Header */}
-      <div className="h-14 px-4 border-b border-ops-border flex items-center justify-between bg-ops-bg/80">
-        <div className="flex items-center space-x-2.5">
-          <div className="w-7 h-7 rounded-md bg-gradient-to-br from-cyan-500 to-blue-600 text-black flex items-center justify-center font-mono font-extrabold text-xs shadow-glow-cyan">
-            L1
+    <div className="flex flex-col h-full bg-[#0F172A] text-slate-300 select-none border-r border-slate-800">
+      {/* LOGISTIX Brand Header */}
+      <div className="h-16 px-5 border-b border-slate-800 flex items-center justify-between bg-[#0F172A]">
+        <div className="flex items-center space-x-3">
+          <div className="w-9 h-9 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-bold text-base shadow-sm shadow-emerald-500/20">
+            <Hexagon className="w-5 h-5 fill-white stroke-emerald-500" />
           </div>
           <div>
-            <span className="font-bold text-sm tracking-tight text-white flex items-center gap-1.5">
-              LOGISTICS ONE
+            <span className="font-bold text-base tracking-wider text-white block leading-tight">
+              LOGISTIX
             </span>
-            <p className="text-[9px] font-mono tracking-widest text-ops-accent uppercase leading-none mt-0.5">
-              Fleet Command
+            <p className="text-[10px] font-sans font-medium text-slate-400 leading-none mt-0.5">
+              Logistics Management System
             </p>
           </div>
         </div>
@@ -160,21 +174,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         {onClose && (
           <button
             onClick={onClose}
-            className="lg:hidden p-1 text-ops-muted hover:text-white rounded-md hover:bg-ops-panel border border-ops-border"
+            className="lg:hidden p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition"
             aria-label="Close menu"
           >
-            <X className="w-4 h-4" />
+            <X className="w-5 h-5" />
           </button>
         )}
       </div>
 
       {/* Nav List by Section */}
-      <div className="flex-1 py-4 px-2.5 space-y-4 overflow-y-auto">
+      <div className="flex-1 py-4 px-3 space-y-5 overflow-y-auto">
         {navSections
           .filter((section) => section.visible)
           .map((section, idx) => (
-            <div key={idx} className="space-y-0.5">
-              <div className="px-3 pb-1 text-[10px] font-mono font-semibold text-ops-dim uppercase tracking-wider">
+            <div key={idx} className="space-y-1">
+              <div className="px-3 pb-1 text-[10px] font-sans font-semibold text-slate-400 uppercase tracking-wider">
                 {section.title}
               </div>
               {section.items
@@ -186,21 +200,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     onClick={() => {
                       if (onClose) onClose();
                     }}
-                    end={item.to === '/' || item.to === '/fleet-dashboard' || item.to === '/driver-console'}
+                    end={item.to === '/' || item.to === '/fleet-dashboard' || item.to === '/driver'}
                     className={({ isActive }) =>
-                      `flex items-center justify-between px-3 py-2 rounded-md text-xs font-medium transition-all ${
+                      `flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
                         isActive
-                          ? 'bg-cyan-950/40 text-cyan-300 font-semibold border border-cyan-500/30 shadow-panel ring-1 ring-cyan-500/20'
-                          : 'text-ops-muted hover:text-ops-text hover:bg-ops-panel/60 border border-transparent'
+                          ? 'bg-emerald-500 text-white font-semibold shadow-sm shadow-emerald-950/20'
+                          : 'text-slate-300 hover:text-white hover:bg-slate-800/80'
                       }`
                     }
                   >
-                    <div className="flex items-center space-x-2.5 truncate">
+                    <div className="flex items-center space-x-3 truncate">
                       <span className="shrink-0">{item.icon}</span>
                       <span className="truncate">{item.label}</span>
                     </div>
                     {item.badge && (
-                      <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-cyan-950 border border-cyan-700 text-cyan-400">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-sans font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                         {item.badge}
                       </span>
                     )}
@@ -210,15 +224,29 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           ))}
       </div>
 
-      {/* Footer Hub Info */}
-      <div className="p-3 border-t border-ops-border text-xs text-ops-dim bg-ops-bg/80">
-        <div className="flex items-center justify-between text-[11px] font-mono">
-          <span className="text-ops-dim">DEPOT HUB:</span>
-          <span className="text-cyan-400 font-semibold">BHIWANDI (MH)</span>
-        </div>
-        <div className="flex items-center justify-between text-[10px] font-mono mt-1 text-ops-dim">
-          <span>LATENCY:</span>
-          <span className="text-emerald-400 font-medium">12ms (NOMINAL)</span>
+      {/* User Footer Profile & Logout */}
+      <div className="p-3.5 border-t border-slate-800 bg-[#0B132B]">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2.5 truncate">
+            <div className="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0">
+              {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+            </div>
+            <div className="truncate min-w-0">
+              <div className="text-xs font-semibold text-white truncate leading-tight">
+                {user?.name || 'User'}
+              </div>
+              <div className="text-[10px] text-slate-400 truncate mt-0.5">
+                {user?.role || 'User'}
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={logout}
+            className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition shrink-0"
+            title="Sign Out"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
       </div>
     </div>
@@ -227,20 +255,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   return (
     <>
       {/* Desktop Sticky Sidebar */}
-      <aside className="hidden lg:flex w-60 flex-col h-screen sticky top-0 z-40 shrink-0">
+      <aside className="hidden lg:flex w-64 flex-col h-screen sticky top-0 z-40 shrink-0 bg-[#0F172A]">
         {sidebarContent}
       </aside>
 
       {/* Mobile Backdrop & Drawer */}
       {isOpen && (
         <div className="fixed inset-0 z-50 lg:hidden flex">
-          {/* Overlay */}
           <div
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity animate-in fade-in"
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity animate-in fade-in"
             onClick={onClose}
           />
-          {/* Slide-over Drawer */}
-          <div className="relative w-64 max-w-[80vw] h-full shadow-2xl animate-in slide-in-from-left duration-200 z-10">
+          <div className="relative w-64 max-w-[80vw] h-full shadow-2xl animate-in slide-in-from-left duration-200 z-10 bg-[#0F172A]">
             {sidebarContent}
           </div>
         </div>

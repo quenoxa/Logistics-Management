@@ -81,12 +81,13 @@ async function runFullAudit() {
   let dispatcherToken = '';
   let opsToken = '';
   let driverToken = '';
+  let viewerToken = '';
 
   const accounts = [
     { email: 'admin@fleetops.io', pass: 'admin123', expectedRole: 'ADMIN' },
     { email: 'dispatcher@fleetops.io', pass: 'dispatch123', expectedRole: 'DISPATCHER' },
-    { email: 'ops@fleetops.io', pass: 'ops123', expectedRole: 'FLEET_MANAGER' },
     { email: 'driver@fleetops.io', pass: 'driver123', expectedRole: 'DRIVER' },
+    { email: 'viewer@example.com', pass: 'password123', expectedRole: 'VIEWER' },
   ];
 
   for (const acc of accounts) {
@@ -98,9 +99,12 @@ async function runFullAudit() {
       const data = res.data;
       const valid = res.ok && data.token && data.user && data.user.role === acc.expectedRole;
       if (acc.expectedRole === 'ADMIN') adminToken = data.token;
-      if (acc.expectedRole === 'DISPATCHER') dispatcherToken = data.token;
-      if (acc.expectedRole === 'FLEET_MANAGER') opsToken = data.token;
+      if (acc.expectedRole === 'DISPATCHER') {
+        dispatcherToken = data.token;
+        opsToken = data.token;
+      }
       if (acc.expectedRole === 'DRIVER') driverToken = data.token;
+      if (acc.expectedRole === 'VIEWER') viewerToken = data.token;
 
       record('AUTH', `Login: ${acc.expectedRole}`, valid, `JWT token received, role=${data.user?.role}`);
     } catch (err: any) {
@@ -302,7 +306,7 @@ async function runFullAudit() {
     });
     const availableVehicle = await prisma.vehicle.findFirst({
       where: {
-        status: 'ACTIVE',
+        status: { in: ['ACTIVE', 'AVAILABLE'] },
         deliveries: { none: { status: { in: ['DISPATCHED', 'PICKED_UP', 'IN_TRANSIT', 'OUT_FOR_DELIVERY'] } } },
       },
     });
@@ -334,7 +338,7 @@ async function runFullAudit() {
         where: { id: deliveryId },
         include: { order: true, driver: true, vehicle: true, timelineEvents: true },
       });
-      record('DELIVERY_WORKFLOW', 'Status: DISPATCHED', delDb1?.status === 'DISPATCHED' && delDb1?.order.status === 'ASSIGNED', `Delivery=${delDb1?.status}, Order=${delDb1?.order.status}, TimelineCount=${delDb1?.timelineEvents.length}`);
+      record('DELIVERY_WORKFLOW', 'Status: DISPATCHED', delDb1?.status === 'DISPATCHED' && delDb1?.order?.status === 'ASSIGNED', `Delivery=${delDb1?.status}, Order=${delDb1?.order?.status}, TimelineCount=${delDb1?.timelineEvents.length}`);
 
       // 4. Milestone 1: PICKED_UP (via state machine transition)
       await apiRequest(
@@ -386,7 +390,7 @@ async function runFullAudit() {
         where: { id: deliveryId },
         include: { order: true, driver: true, vehicle: true, timelineEvents: true },
       });
-      const completedOk = delDb5?.status === 'DELIVERED' && delDb5?.order.status === 'DELIVERED' && delDb5?.progressPercent === 100 && !!delDb5?.recipientSignature;
+      const completedOk = delDb5?.status === 'DELIVERED' && delDb5?.order?.status === 'DELIVERED' && delDb5?.progressPercent === 100 && !!delDb5?.recipientSignature;
       record('DELIVERY_WORKFLOW', 'Status: DELIVERED & POD Signed', completedOk, `DB Status=${delDb5?.status}, Progress=${delDb5?.progressPercent}%, Sig=${delDb5?.recipientSignature}`);
 
       // Verify all 5 timeline events exist in DB
@@ -490,6 +494,79 @@ async function runFullAudit() {
     record('DRIVER_CONSOLE', 'Driver /driver/history Endpoint', Array.isArray(driverHistRes.data?.history), `Returned ${driverHistRes.data?.history?.length} past trips`);
   } catch (err: any) {
     record('DRIVER_CONSOLE', 'Driver Console Endpoints', false, err.message);
+  }
+
+  // ==========================================
+  // 11. COMPREHENSIVE NEGATIVE TEST SUITE
+  // ==========================================
+  console.log('\n--- 11. COMPREHENSIVE NEGATIVE TEST SUITE ---');
+  if (!viewerToken) {
+    try {
+      const vRes = await apiRequest('/auth/login', 'POST', { email: 'viewer@example.com', password: 'password123' });
+      viewerToken = vRes.data?.token;
+    } catch {}
+  }
+
+  // 11.1 Viewer attempt create delivery -> 403
+  try {
+    const res = await apiRequest('/deliveries', 'POST', { customerName: 'Forbidden Test' }, viewerToken);
+    record('NEGATIVE_TESTS', 'Viewer → Create Delivery (403)', res.status === 403, `Blocked with HTTP ${res.status}`);
+  } catch (err: any) {
+    record('NEGATIVE_TESTS', 'Viewer → Create Delivery (403)', false, err.message);
+  }
+
+  // 11.2 Viewer attempt delete vehicle -> 403
+  try {
+    const res = await apiRequest('/vehicles/some-id', 'DELETE', undefined, viewerToken);
+    record('NEGATIVE_TESTS', 'Viewer → Delete Vehicle (403)', res.status === 403, `Blocked with HTTP ${res.status}`);
+  } catch (err: any) {
+    record('NEGATIVE_TESTS', 'Viewer → Delete Vehicle (403)', false, err.message);
+  }
+
+  // 11.3 Driver attempt assign driver -> 403
+  try {
+    const res = await apiRequest('/deliveries/some-id/assign-driver', 'POST', { driverId: 'd1' }, driverToken);
+    record('NEGATIVE_TESTS', 'Driver → Assign Driver (403)', res.status === 403, `Blocked with HTTP ${res.status}`);
+  } catch (err: any) {
+    record('NEGATIVE_TESTS', 'Driver → Assign Driver (403)', false, err.message);
+  }
+
+  // 11.4 Invalid transition: PENDING -> DELIVERED -> 400
+  try {
+    const pendDel = await prisma.delivery.findFirst({ where: { status: 'PENDING' } });
+    if (pendDel) {
+      const res = await apiRequest(`/deliveries/${pendDel.id}/transition`, 'POST', { nextStatus: 'DELIVERED' }, dispatcherToken);
+      record('NEGATIVE_TESTS', 'Invalid Transition: PENDING → DELIVERED (400)', res.status === 400, `Rejected with HTTP ${res.status}`);
+    }
+  } catch (err: any) {
+    record('NEGATIVE_TESTS', 'Invalid Transition: PENDING → DELIVERED (400)', false, err.message);
+  }
+
+  // 11.5 Invalid transition: DELIVERED -> IN_TRANSIT -> 400
+  try {
+    const delivDel = await prisma.delivery.findFirst({ where: { status: 'DELIVERED' } });
+    if (delivDel) {
+      const res = await apiRequest(`/deliveries/${delivDel.id}/transition`, 'POST', { nextStatus: 'IN_TRANSIT' }, dispatcherToken);
+      record('NEGATIVE_TESTS', 'Invalid Transition: DELIVERED → IN_TRANSIT (400)', res.status === 400, `Rejected with HTTP ${res.status}`);
+    }
+  } catch (err: any) {
+    record('NEGATIVE_TESTS', 'Invalid Transition: DELIVERED → IN_TRANSIT (400)', false, err.message);
+  }
+
+  // 11.6 Malicious role creation attempt (FLEET_MANAGER / SUPERADMIN) -> 400
+  try {
+    const res = await apiRequest('/admin/users', 'POST', { email: 'hacker@fleetops.io', password: 'password123', name: 'Hacker', role: 'FLEET_MANAGER' }, adminToken);
+    record('NEGATIVE_TESTS', 'Reject Malicious Role FLEET_MANAGER (400)', res.status === 400, `Rejected with HTTP ${res.status}`);
+  } catch (err: any) {
+    record('NEGATIVE_TESTS', 'Reject Malicious Role FLEET_MANAGER (400)', false, err.message);
+  }
+
+  // 11.6 Invalid JWT authentication -> 401
+  try {
+    const res = await apiRequest('/auth/me', 'GET', undefined, 'invalid.jwt.token.here');
+    record('NEGATIVE_TESTS', 'Invalid JWT Token (401)', res.status === 401, `Rejected with HTTP ${res.status}`);
+  } catch (err: any) {
+    record('NEGATIVE_TESTS', 'Invalid JWT Token (401)', false, err.message);
   }
 
   // ==========================================

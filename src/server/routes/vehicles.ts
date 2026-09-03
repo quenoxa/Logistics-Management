@@ -94,7 +94,7 @@ router.get('/:id', authenticateToken, async (req: AuthenticatedRequest, res: Res
 });
 
 // Create vehicle
-router.post('/', authenticateToken, requireRole('ADMIN', 'FLEET_MANAGER'), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+router.post('/', authenticateToken, requireRole('ADMIN', 'DISPATCHER'), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const {
       code,
@@ -181,7 +181,7 @@ router.post('/', authenticateToken, requireRole('ADMIN', 'FLEET_MANAGER'), async
 });
 
 // Update vehicle
-router.put('/:id', authenticateToken, requireRole('ADMIN', 'FLEET_MANAGER'), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+router.put('/:id', authenticateToken, requireRole('ADMIN', 'DISPATCHER'), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const updateData = { ...req.body };
@@ -225,7 +225,7 @@ router.put('/:id', authenticateToken, requireRole('ADMIN', 'FLEET_MANAGER'), asy
 });
 
 // Delete vehicle
-router.delete('/:id', authenticateToken, requireRole('ADMIN', 'FLEET_MANAGER'), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+router.delete('/:id', authenticateToken, requireRole('ADMIN', 'DISPATCHER'), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
 
@@ -263,7 +263,7 @@ router.delete('/:id', authenticateToken, requireRole('ADMIN', 'FLEET_MANAGER'), 
 });
 
 // Add Maintenance Log
-router.post('/:id/maintenance', authenticateToken, requireRole('ADMIN', 'FLEET_MANAGER'), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+router.post('/:id/maintenance', authenticateToken, requireRole('ADMIN', 'DISPATCHER'), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const { serviceType, description, cost, odometerKm, serviceDate, performedBy, status = 'COMPLETED' } = req.body;
@@ -309,7 +309,7 @@ router.post('/:id/maintenance', authenticateToken, requireRole('ADMIN', 'FLEET_M
 });
 
 // Update Maintenance Log
-router.put('/maintenance/:logId', authenticateToken, requireRole('ADMIN', 'FLEET_MANAGER'), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+router.put('/maintenance/:logId', authenticateToken, requireRole('ADMIN', 'DISPATCHER'), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const { logId } = req.params;
     const { status, cost, description, performedBy } = req.body;

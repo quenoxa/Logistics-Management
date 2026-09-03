@@ -39,6 +39,10 @@ export const authApi = {
     const res = await apiClient.post<{ token: string; user: User }>('/auth/demo-login', { role });
     return res.data;
   },
+  logout: async () => {
+    const res = await apiClient.post<{ success: boolean }>('/auth/logout');
+    return res.data;
+  },
   getMe: async () => {
     const res = await apiClient.get<{ user: User }>('/auth/me');
     return res.data.user;
@@ -61,6 +65,10 @@ export const vehiclesApi = {
   },
   update: async (id: string, data: Partial<Vehicle>) => {
     const res = await apiClient.put<{ vehicle: Vehicle }>(`/vehicles/${id}`, data);
+    return res.data.vehicle;
+  },
+  updateStatus: async (id: string, status: string) => {
+    const res = await apiClient.put<{ vehicle: Vehicle }>(`/vehicles/${id}`, { status });
     return res.data.vehicle;
   },
   delete: async (id: string) => {
@@ -103,6 +111,10 @@ export const driversApi = {
     const res = await apiClient.patch<{ driver: Driver }>(`/drivers/${id}/status`, { status });
     return res.data.driver;
   },
+  updateLocation: async (id: string, coords: { latitude: number; longitude: number }) => {
+    const res = await apiClient.patch<{ success: boolean; data: Driver }>(`/drivers/${id}/location`, coords);
+    return res.data;
+  },
   delete: async (id: string) => {
     const res = await apiClient.delete(`/drivers/${id}`);
     return res.data;
@@ -139,12 +151,12 @@ export const ordersApi = {
 
 // Deliveries API
 export const deliveriesApi = {
-  getAll: async (params?: { status?: string; priority?: string; driverId?: string; vehicleId?: string; search?: string; sort?: string; order?: string }) => {
-    const res = await apiClient.get<{ deliveries: Delivery[] }>('/deliveries', { params });
+  getAll: async (params?: { status?: string; priority?: string; driverId?: string; vehicleId?: string; search?: string; sort?: string; order?: string; page?: number; limit?: number }) => {
+    const res = await apiClient.get<{ success?: boolean; deliveries: Delivery[]; total?: number }>('/deliveries', { params });
     return res.data.deliveries;
   },
   getById: async (id: string) => {
-    const res = await apiClient.get<{ delivery: Delivery }>(`/deliveries/${id}`);
+    const res = await apiClient.get<{ success?: boolean; delivery: Delivery }>(`/deliveries/${id}`);
     return res.data.delivery;
   },
   getDriverCurrent: async () => {
@@ -155,32 +167,116 @@ export const deliveriesApi = {
     const res = await apiClient.get<{ history: Delivery[] }>('/deliveries/driver/history');
     return res.data;
   },
-  create: async (data: {
-    orderId: string;
-    driverId: string;
-    vehicleId: string;
-    priority?: string;
-    pickupScheduledAt?: string;
-    deliveryEstimatedAt?: string;
-    notes?: string;
-  }) => {
-    const res = await apiClient.post<{ delivery: Delivery }>('/deliveries', data);
+  create: async (data: Partial<Delivery>) => {
+    const res = await apiClient.post<{ success?: boolean; delivery: Delivery }>('/deliveries', data);
+    return res.data.delivery;
+  },
+  update: async (id: string, data: Partial<Delivery>) => {
+    const res = await apiClient.put<{ success?: boolean; delivery: Delivery }>(`/deliveries/${id}`, data);
+    return res.data.delivery;
+  },
+  delete: async (id: string) => {
+    const res = await apiClient.delete(`/deliveries/${id}`);
+    return res.data;
+  },
+  assignDriver: async (id: string, driverId: string) => {
+    const res = await apiClient.post<{ success?: boolean; delivery: Delivery }>(`/deliveries/${id}/assign-driver`, { driverId });
+    return res.data.delivery;
+  },
+  assignVehicle: async (id: string, vehicleId: string) => {
+    const res = await apiClient.post<{ success?: boolean; delivery: Delivery }>(`/deliveries/${id}/assign-vehicle`, { vehicleId });
     return res.data.delivery;
   },
   transitionStatus: async (
     id: string,
     data: {
-      nextStatus: string;
+      status?: string;
+      nextStatus?: string;
       notes?: string;
+      note?: string;
       recipientSignature?: string;
       delayReason?: string;
       currentLat?: number;
       currentLng?: number;
+      latitude?: number;
+      longitude?: number;
       locationName?: string;
     }
   ) => {
-    const res = await apiClient.post<{ delivery: Delivery }>(`/deliveries/${id}/transition`, data);
+    const targetStatus = data.status || data.nextStatus;
+    const res = await apiClient.patch<{ success?: boolean; delivery: Delivery }>(`/deliveries/${id}/status`, {
+      status: targetStatus,
+      note: data.notes || data.note,
+      recipientSignature: data.recipientSignature,
+      delayReason: data.delayReason,
+      latitude: data.currentLat || data.latitude,
+      longitude: data.currentLng || data.longitude,
+    });
     return res.data.delivery;
+  },
+  getHistory: async (id: string) => {
+    const res = await apiClient.get<{ success?: boolean; history: any[] }>(`/deliveries/${id}/history`);
+    return res.data.history;
+  },
+};
+
+// Dashboard API
+export const dashboardApi = {
+  getStats: async () => {
+    const res = await apiClient.get<{ success: boolean; stats: any }>('/dashboard/stats');
+    return res.data.stats;
+  },
+  getDeliveryTrends: async () => {
+    const res = await apiClient.get<{ success: boolean; deliveryTrends: any }>('/dashboard/delivery-trends');
+    return res.data.deliveryTrends;
+  },
+  getDriverPerformance: async () => {
+    const res = await apiClient.get<{ success: boolean; driverPerformance: any[] }>('/dashboard/driver-performance');
+    return res.data.driverPerformance;
+  },
+  getVehicleUtilization: async () => {
+    const res = await apiClient.get<{ success: boolean; vehicleUtilization: any }>('/dashboard/vehicle-utilization');
+    return res.data.vehicleUtilization;
+  },
+};
+
+// Maintenance API
+export const maintenanceApi = {
+  getAll: async (params?: { vehicleId?: string; status?: string; search?: string }) => {
+    const res = await apiClient.get<{ success: boolean; records: any[] }>('/maintenance', { params });
+    return res.data.records;
+  },
+  create: async (data: any) => {
+    const res = await apiClient.post<{ success: boolean; record: any }>('/maintenance', data);
+    return res.data.record;
+  },
+  update: async (id: string, data: any) => {
+    const res = await apiClient.put<{ success: boolean; record: any }>(`/maintenance/${id}`, data);
+    return res.data.record;
+  },
+  delete: async (id: string) => {
+    const res = await apiClient.delete(`/maintenance/${id}`);
+    return res.data;
+  },
+};
+
+// Issues API
+export const issuesApi = {
+  getAll: async (params?: { status?: string; priority?: string; deliveryId?: string; driverId?: string }) => {
+    const res = await apiClient.get<{ success: boolean; issues: any[] }>('/issues', { params });
+    return res.data.issues;
+  },
+  create: async (data: any) => {
+    const res = await apiClient.post<{ success: boolean; issue: any }>('/issues', data);
+    return res.data.issue;
+  },
+  update: async (id: string, data: any) => {
+    const res = await apiClient.patch<{ success: boolean; issue: any }>(`/issues/${id}`, data);
+    return res.data.issue;
+  },
+  resolve: async (id: string) => {
+    const res = await apiClient.patch<{ success: boolean; issue: any }>(`/issues/${id}/resolve`);
+    return res.data.issue;
   },
 };
 

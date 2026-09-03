@@ -11,6 +11,9 @@ import trackingRoutes from './routes/tracking';
 import reportsRoutes from './routes/reports';
 import settingsRoutes from './routes/settings';
 import adminRoutes from './routes/admin';
+import dashboardRoutes from './routes/dashboard';
+import maintenanceRoutes from './routes/maintenance';
+import issuesRoutes from './routes/issues';
 
 const app = express();
 
@@ -28,7 +31,7 @@ app.use(express.urlencoded({ extended: true }));
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ONLINE',
-    service: 'LOGISTICS ONE API',
+    service: 'LOGISTICS MANAGEMENT API',
     version: '1.0.0',
     timestamp: new Date().toISOString(),
   });
@@ -44,6 +47,9 @@ app.use('/api/tracking', trackingRoutes);
 app.use('/api/reports', reportsRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/maintenance', maintenanceRoutes);
+app.use('/api/issues', issuesRoutes);
 
 // 404 handler
 app.use((req, res) => {
@@ -60,12 +66,14 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 });
 
 // Start Server
-app.listen(config.port, () => {
-  console.log(`=========================================`);
-  console.log(`🚀 LOGISTICS ONE API Server is RUNNING`);
-  console.log(`📡 Port: ${config.port}`);
-  console.log(`🌐 Base URL: http://localhost:${config.port}/api`);
-  console.log(`=========================================`);
-});
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(config.port, () => {
+    console.log(`=========================================`);
+    console.log(`🚀 LOGISTICS MANAGEMENT API Server is RUNNING`);
+    console.log(`📡 Port: ${config.port}`);
+    console.log(`🌐 Base URL: http://localhost:${config.port}/api`);
+    console.log(`=========================================`);
+  });
+}
 
 export default app;

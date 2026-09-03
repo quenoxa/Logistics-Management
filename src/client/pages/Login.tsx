@@ -1,7 +1,20 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { AlertCircle, Lock, Mail, ArrowRight, ShieldCheck, Activity, Radio, Truck, Cpu } from 'lucide-react';
+import {
+  AlertCircle,
+  Lock,
+  Mail,
+  ArrowRight,
+  ShieldCheck,
+  Truck,
+  BarChart3,
+  Users,
+  Eye,
+  EyeOff,
+  Hexagon,
+  Check,
+} from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 
 export const Login: React.FC = () => {
@@ -9,17 +22,19 @@ export const Login: React.FC = () => {
   const { login } = useAuth();
   const { success, error: toastError } = useToast();
 
-  const [email, setEmail] = useState('dispatcher@fleetops.io');
-  const [password, setPassword] = useState('dispatch123');
+  const [email, setEmail] = useState('dispatcher@example.com');
+  const [password, setPassword] = useState('password123');
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const [selectedDemoRole, setSelectedDemoRole] = useState('DISPATCHER');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const demoAccounts: Record<string, { email: string; pass: string; label: string; roleName: string }> = {
-    DISPATCHER: { email: 'dispatcher@fleetops.io', pass: 'dispatch123', label: 'Priya Nair', roleName: 'Chief Dispatcher' },
-    ADMIN: { email: 'admin@fleetops.io', pass: 'admin123', label: 'Rajesh Sharma', roleName: 'Command Administrator' },
-    FLEET_MANAGER: { email: 'ops@fleetops.io', pass: 'ops123', label: 'Anand Verma', roleName: 'Fleet Controller' },
-    DRIVER: { email: 'driver@fleetops.io', pass: 'driver123', label: 'Vikram Singh', roleName: 'Commercial Driver' },
+    DISPATCHER: { email: 'dispatcher@example.com', pass: 'password123', label: 'Priya Dispatcher', roleName: 'Dispatcher' },
+    ADMIN: { email: 'admin@example.com', pass: 'password123', label: 'System Admin', roleName: 'System Admin' },
+    DRIVER: { email: 'driver1@example.com', pass: 'password123', label: 'Vikram Driver', roleName: 'Commercial Driver' },
+    VIEWER: { email: 'viewer@example.com', pass: 'password123', label: 'Sarah Viewer', roleName: 'Operations Viewer' },
   };
 
   const handleSelectDemo = (role: string) => {
@@ -34,7 +49,7 @@ export const Login: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
-      setError('Please enter your work email and password.');
+      setError('Please enter your email and password.');
       return;
     }
 
@@ -42,7 +57,7 @@ export const Login: React.FC = () => {
       setLoading(true);
       setError(null);
       await login(email, password);
-      success('ACCESS GRANTED', 'Session clearance verified. Entering Command Center.');
+      success('Access Granted', 'Session verified. Welcome to LOGISTIX.');
       navigate('/');
     } catch (err: any) {
       const msg = err.response?.data?.error || 'Authentication failed. Please verify your credentials.';
@@ -54,173 +69,267 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-ops-bg flex items-center justify-center p-4 sm:p-6 lg:p-8 text-ops-text font-sans selection:bg-ops-accent selection:text-black">
-      {/* Background Decorative Grid */}
-      <div className="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:24px_24px] opacity-25 pointer-events-none"></div>
-
-      <div className="w-full max-w-4xl bg-ops-surface border border-ops-border rounded-2xl shadow-modal overflow-hidden grid grid-cols-1 lg:grid-cols-12 z-10 relative">
+    <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4 sm:p-6 lg:p-10 font-sans selection:bg-emerald-500 selection:text-white">
+      <div className="w-full max-w-6xl bg-white rounded-[24px] shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-0 lg:min-h-[680px]">
         
-        {/* Left Command Visual Showcase (Desktop) */}
-        <div className="lg:col-span-5 bg-gradient-to-br from-ops-bg via-[#0c121c] to-[#0f1724] p-8 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-ops-border relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        {/* Left LOGISTIX Hero Showcase Panel (Reference Design) */}
+        <div className="lg:col-span-6 bg-[#0F172A] p-8 sm:p-12 flex flex-col justify-between relative overflow-hidden text-white">
+          {/* Background Cargo / Airplane Logistics Overlay */}
+          <div
+            className="absolute inset-0 bg-cover bg-center opacity-25 mix-blend-overlay pointer-events-none"
+            style={{
+              backgroundImage: `url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1200')`,
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A] via-[#0F172A]/80 to-transparent pointer-events-none" />
 
-          <div>
-            <div className="flex items-center space-x-2.5">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-600 text-black flex items-center justify-center font-mono font-extrabold text-sm shadow-glow-cyan">
-                L1
+          {/* LOGISTIX Logo */}
+          <div className="relative z-10">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                <Hexagon className="w-6 h-6 fill-white stroke-emerald-500" />
               </div>
               <div>
-                <span className="font-bold text-base tracking-tight text-white block leading-tight">
-                  LOGISTICS ONE
+                <span className="font-bold text-xl tracking-wider text-white block leading-tight">
+                  LOGISTIX
                 </span>
-                <span className="text-[10px] font-mono tracking-widest text-cyan-400 uppercase">
-                  Operations Console
+                <span className="text-xs font-sans font-medium text-slate-400">
+                  Logistics Management System
                 </span>
               </div>
             </div>
 
-            <div className="mt-8 space-y-3">
-              <h2 className="text-xl font-bold tracking-tight text-white leading-snug">
-                Mission-critical freight & fleet intelligence.
-              </h2>
-              <p className="text-xs text-ops-muted leading-relaxed">
-                Centralized dispatching, corridor radar tracking, asset maintenance telemetry, and digital chain of custody.
+            {/* Headline */}
+            <div className="mt-12 space-y-4">
+              <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white leading-tight">
+                Smarter <span className="text-emerald-400">Logistics.</span>
+                <br />
+                Stronger <span className="text-emerald-400">Deliveries.</span>
+              </h1>
+              <p className="text-sm text-slate-300 max-w-md leading-relaxed">
+                Real-time tracking, efficient operations, and complete visibility across your logistics network.
               </p>
             </div>
+
+            {/* Feature Highlights Grid */}
+            <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-md">
+              <div className="p-3.5 rounded-xl bg-slate-800/60 border border-slate-700/50 backdrop-blur-md flex items-center space-x-3">
+                <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shrink-0">
+                  <Truck className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-white">Real-time Tracking</div>
+                  <div className="text-[11px] text-slate-400">Track shipments in real time</div>
+                </div>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-slate-800/60 border border-slate-700/50 backdrop-blur-md flex items-center space-x-3">
+                <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shrink-0">
+                  <BarChart3 className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-white">Smart Analytics</div>
+                  <div className="text-[11px] text-slate-400">Data-driven insights</div>
+                </div>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-slate-800/60 border border-slate-700/50 backdrop-blur-md flex items-center space-x-3">
+                <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shrink-0">
+                  <ShieldCheck className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-white">Secure & Reliable</div>
+                  <div className="text-[11px] text-slate-400">Enterprise security</div>
+                </div>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-slate-800/60 border border-slate-700/50 backdrop-blur-md flex items-center space-x-3">
+                <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shrink-0">
+                  <Users className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-white">Team Collaboration</div>
+                  <div className="text-[11px] text-slate-400">Seamless communication</div>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Telemetry Status Strip */}
-          <div className="my-6 p-3.5 rounded-lg bg-ops-surface/80 border border-ops-border/80 space-y-2.5 font-mono text-[11px]">
-            <div className="flex items-center justify-between text-ops-dim">
-              <span className="flex items-center gap-1.5">
-                <Radio className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
-                CORRIDOR RADAR:
-              </span>
-              <span className="text-cyan-400 font-bold">ONLINE</span>
+          {/* Bottom Trust Badge */}
+          <div className="relative z-10 mt-8 pt-6 border-t border-slate-800/80 flex items-center space-x-3">
+            <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 shrink-0">
+              <ShieldCheck className="w-5 h-5" />
             </div>
-            <div className="flex items-center justify-between text-ops-dim">
-              <span className="flex items-center gap-1.5">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                SECURITY PROTOCOL:
-              </span>
-              <span className="text-emerald-400 font-bold">RBAC LEVEL 4</span>
-            </div>
-            <div className="flex items-center justify-between text-ops-dim">
-              <span className="flex items-center gap-1.5">
-                <Truck className="w-3.5 h-3.5 text-amber-400" />
-                DATABASE FIX:
-              </span>
-              <span className="text-ops-text font-bold">SQLITE WAL</span>
-            </div>
-          </div>
-
-          <div className="text-[10px] font-mono text-ops-dim flex items-center justify-between border-t border-ops-border/60 pt-3">
-            <span>TERMINAL V1.0.0</span>
-            <span className="text-emerald-400 font-semibold flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-              LIVE OPS
-            </span>
+            <p className="text-xs text-slate-300">
+              Trusted by <span className="font-bold text-white">500+ logistics companies</span> to deliver excellence every day.
+            </p>
           </div>
         </div>
 
-        {/* Right Authentication Form */}
-        <div className="lg:col-span-7 p-7 sm:p-9 flex flex-col justify-between space-y-6">
+        {/* Right Sign-In Form (Reference Match) */}
+        <div className="lg:col-span-6 p-8 sm:p-12 flex flex-col justify-between bg-white text-slate-900">
           <div>
-            <div className="flex items-center justify-between">
-              <h2 className="text-base font-mono font-bold uppercase tracking-wider text-ops-text flex items-center gap-2">
-                <span className="w-1.5 h-3.5 bg-cyan-400 rounded-xs"></span>
-                Operator Sign-In
+            {/* Header Lock Icon Badge */}
+            <div className="flex justify-center mb-4">
+              <div className="w-14 h-14 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center">
+                <Lock className="w-7 h-7" />
+              </div>
+            </div>
+
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-extrabold text-slate-900">
+                Welcome Back
               </h2>
-              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-ops-panel border border-ops-border text-ops-dim">
-                ENCRYPTED TLS
-              </span>
+              <p className="text-xs text-slate-500 mt-1">
+                Sign in to continue to your account
+              </p>
             </div>
-            <p className="text-xs text-ops-dim mt-1 font-sans">
-              Enter registered credentials or select a verified operator profile.
-            </p>
-          </div>
 
-          {error && (
-            <div className="p-3 rounded-lg bg-rose-950/40 border border-rose-800/50 text-rose-300 text-xs flex items-center gap-2.5 font-sans">
-              <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
-              <span>{error}</span>
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4 text-xs font-sans">
-            <div>
-              <label className="block font-mono text-[11px] font-semibold text-ops-muted uppercase tracking-wider mb-1.5">
-                Operator Work Email
-              </label>
-              <div className="relative">
-                <Mail className="w-4 h-4 text-ops-dim absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="operator@fleetops.io"
-                  required
-                  className="w-full pl-9 pr-3 py-2.5 bg-ops-bg border border-ops-border rounded-lg text-xs text-ops-text placeholder:text-ops-dim focus:outline-hidden focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/40 transition-all font-mono"
-                />
+            {error && (
+              <div className="mb-6 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2.5">
+                <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+                <span>{error}</span>
               </div>
-            </div>
+            )}
 
-            <div>
-              <label className="block font-mono text-[11px] font-semibold text-ops-muted uppercase tracking-wider mb-1.5">
-                Passphrase / Token
-              </label>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-ops-dim absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••••••"
-                  required
-                  className="w-full pl-9 pr-3 py-2.5 bg-ops-bg border border-ops-border rounded-lg text-xs text-ops-text placeholder:text-ops-dim focus:outline-hidden focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/40 transition-all font-mono"
-                />
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Email Address
+                </label>
+                <div className="relative">
+                  <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter your email"
+                    required
+                    className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition font-sans"
+                  />
+                </div>
               </div>
-            </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-2.5 px-4 bg-cyan-600 hover:bg-cyan-500 text-black rounded-lg text-xs font-mono font-bold uppercase tracking-wider transition-all flex items-center justify-center space-x-2 disabled:opacity-50 shadow-glow-cyan mt-2"
-            >
-              <span>{loading ? 'AUTHENTICATING CLEARANCE...' : 'AUTHORIZE & ENTER CONSOLE'}</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </form>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Password
+                </label>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter your password"
+                    required
+                    className="w-full pl-10 pr-10 py-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition font-sans"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
 
-          {/* Quick Demo Operator Profiles */}
-          <div className="pt-3 border-t border-ops-border">
-            <p className="text-[10px] font-mono font-bold text-ops-dim uppercase tracking-wider mb-2 text-center">
-              Instant Clearance Selection (Demo)
-            </p>
-            <div className="grid grid-cols-2 gap-2">
-              {Object.entries(demoAccounts).map(([roleKey, acc]) => (
+              {/* Remember me & Forgot Password */}
+              <div className="flex items-center justify-between text-xs pt-1">
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4 border-slate-300"
+                  />
+                  <span className="text-slate-600 font-medium">Remember me</span>
+                </label>
                 <button
-                  key={roleKey}
                   type="button"
-                  onClick={() => handleSelectDemo(roleKey)}
-                  className={`p-2.5 rounded-lg border text-left text-xs transition-all ${
-                    selectedDemoRole === roleKey
-                      ? 'border-cyan-500 bg-cyan-950/40 text-cyan-300 shadow-panel ring-1 ring-cyan-500/30'
-                      : 'border-ops-border bg-ops-bg/60 hover:bg-ops-panel text-ops-muted hover:text-ops-text'
-                  }`}
+                  onClick={() => alert('Demo Reset Link: Please use default password (password123)')}
+                  className="text-emerald-600 hover:text-emerald-700 font-semibold"
                 >
-                  <span className="font-mono font-bold block truncate text-[11px] text-ops-text">{acc.roleName}</span>
-                  <span className="text-[10px] font-mono block truncate text-ops-dim">
-                    {acc.label}
-                  </span>
+                  Forgot Password?
                 </button>
-              ))}
+              </div>
+
+              {/* Primary Emerald Sign In Button */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-2 disabled:opacity-50 shadow-md shadow-emerald-600/20 mt-2"
+              >
+                <span>{loading ? 'Signing In...' : 'Sign In'}</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </form>
+
+            {/* Social Logins Section */}
+            <div className="mt-6 pt-4 border-t border-slate-100">
+              <div className="text-center text-xs text-slate-400 mb-3">or continue with</div>
+              <div className="grid grid-cols-3 gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => handleSelectDemo('ADMIN')}
+                  className="py-2 px-3 border border-slate-200 rounded-xl text-xs font-medium text-slate-700 hover:bg-slate-50 transition flex items-center justify-center gap-1.5"
+                >
+                  <span className="w-2 h-2 rounded-full bg-blue-500"></span> Google
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSelectDemo('DISPATCHER')}
+                  className="py-2 px-3 border border-slate-200 rounded-xl text-xs font-medium text-slate-700 hover:bg-slate-50 transition flex items-center justify-center gap-1.5"
+                >
+                  <span className="w-2 h-2 rounded-full bg-cyan-500"></span> Microsoft
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSelectDemo('DRIVER')}
+                  className="py-2 px-3 border border-slate-200 rounded-xl text-xs font-medium text-slate-700 hover:bg-slate-50 transition flex items-center justify-center gap-1.5"
+                >
+                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Slack
+                </button>
+              </div>
+            </div>
+
+            {/* Demo Account Quick Role Switcher */}
+            <div className="mt-6 pt-4 border-t border-slate-100">
+              <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2 text-center">
+                Demo Accounts Quick Switcher
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {Object.entries(demoAccounts).map(([roleKey, acc]) => {
+                  const isSelected = selectedDemoRole === roleKey;
+                  return (
+                    <button
+                      key={roleKey}
+                      type="button"
+                      onClick={() => handleSelectDemo(roleKey)}
+                      className={`p-2 rounded-lg border text-left transition ${
+                        isSelected
+                          ? 'border-emerald-500 bg-emerald-50 text-emerald-800'
+                          : 'border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600'
+                      }`}
+                    >
+                      <div className="text-xs font-bold truncate">{acc.roleName}</div>
+                      <div className="text-[10px] text-slate-500 truncate">{acc.label}</div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
           {/* Footer */}
-          <div className="pt-2 text-center text-[10px] font-mono text-ops-dim">
-            SECURE OPERATIONS PLATFORM &bull; ROLE-BASED ACCESS CONTROL (RBAC)
+          <div className="text-center text-xs text-slate-500 mt-6">
+            Don't have an account?{' '}
+            <button
+              onClick={() => navigate('/register')}
+              className="text-emerald-600 hover:text-emerald-700 font-bold ml-1"
+            >
+              Sign up
+            </button>
           </div>
         </div>
       </div>

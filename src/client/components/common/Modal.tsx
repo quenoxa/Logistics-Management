@@ -47,36 +47,32 @@ export const Modal: React.FC<ModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
 
       {/* Dialog Box */}
       <div
-        className={`relative w-full ${maxWidthClasses[maxWidth]} bg-ops-surface border border-ops-borderLight rounded-xl shadow-modal overflow-hidden z-10 my-8 text-ops-text animate-in zoom-in-95 duration-150`}
+        className={`relative w-full ${maxWidthClasses[maxWidth]} bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden z-10 my-8 text-slate-900 animate-in zoom-in-95 duration-150 flex flex-col max-h-[85vh]`}
       >
-        {/* Top Glow Edge */}
-        <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent"></div>
-
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-ops-border bg-ops-bg/80">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50/50 shrink-0">
           <div>
-            <h3 className="text-sm font-mono font-bold uppercase tracking-wider text-ops-text flex items-center gap-2">
-              <span className="w-1.5 h-3.5 bg-cyan-400 rounded-xs"></span>
+            <h3 className="text-base font-bold text-slate-900 font-sans">
               {title}
             </h3>
-            {subtitle && <p className="text-xs text-ops-dim mt-0.5 font-sans">{subtitle}</p>}
+            {subtitle && <p className="text-xs text-slate-500 mt-0.5 font-sans">{subtitle}</p>}
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-ops-dim hover:text-ops-text hover:bg-ops-panel border border-transparent hover:border-ops-border transition-colors"
+            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
           >
-            <X className="w-4 h-4" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-6 max-h-[80vh] overflow-y-auto text-ops-text">
+        <div className="p-6 overflow-y-auto text-slate-800 flex-1">
           {children}
         </div>
       </div>

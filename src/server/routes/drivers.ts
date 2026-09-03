@@ -90,7 +90,7 @@ router.get('/:id', authenticateToken, async (req: AuthenticatedRequest, res: Res
 });
 
 // Create driver
-router.post('/', authenticateToken, requireRole('ADMIN', 'FLEET_MANAGER'), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+router.post('/', authenticateToken, requireRole('ADMIN', 'DISPATCHER'), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const {
       code,
@@ -167,7 +167,7 @@ router.post('/', authenticateToken, requireRole('ADMIN', 'FLEET_MANAGER'), async
 });
 
 // Update driver
-router.put('/:id', authenticateToken, requireRole('ADMIN', 'FLEET_MANAGER'), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+router.put('/:id', authenticateToken, requireRole('ADMIN', 'DISPATCHER'), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const {
@@ -255,7 +255,7 @@ router.patch('/:id/status', authenticateToken, async (req: AuthenticatedRequest,
 });
 
 // Delete driver
-router.delete('/:id', authenticateToken, requireRole('ADMIN', 'FLEET_MANAGER'), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+router.delete('/:id', authenticateToken, requireRole('ADMIN', 'DISPATCHER'), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
 
