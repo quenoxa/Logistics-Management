@@ -166,7 +166,7 @@ Shipments advance through a strictly enforced sequential workflow:
 
 ### 2. Clone & Install Dependencies
 ```bash
-git clone https://github.com/Benedict-Edwin/Logistix.git
+git clone https://github.com/quenoxa/Logistix.git
 cd Logistix
 npm install
 ```
